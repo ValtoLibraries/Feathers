@@ -396,6 +396,7 @@ package feathers.controls
 		 */
 		protected static const INVALIDATION_FLAG_INCREMENT_BUTTON_FACTORY:String = "incrementButtonFactory";
 
+		[Deprecated(replacement="feathers.layout.Direction.HORIZONTAL",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.layout.Direction.HORIZONTAL</code>.
@@ -407,6 +408,7 @@ package feathers.controls
 		 */
 		public static const DIRECTION_HORIZONTAL:String = "horizontal";
 
+		[Deprecated(replacement="feathers.layout.Direction.VERTICAL",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.layout.Direction.VERTICAL</code>.
@@ -418,6 +420,7 @@ package feathers.controls
 		 */
 		public static const DIRECTION_VERTICAL:String = "vertical";
 
+		[Deprecated(replacement="feathers.controls.TrackLayoutMode.SINGLE",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.TrackLayoutMode.SINGLE</code>.
@@ -429,6 +432,7 @@ package feathers.controls
 		 */
 		public static const TRACK_LAYOUT_MODE_SINGLE:String = "single";
 
+		[Deprecated(replacement="feathers.controls.TrackLayoutMode.SPLIT",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.TrackLayoutMode.SPLIT</code>.
@@ -1154,7 +1158,7 @@ package feathers.controls
 		 */
 		public function set trackLayoutMode(value:String):void
 		{
-			if(value === TRACK_LAYOUT_MODE_MIN_MAX)
+			if(value === "minMax")
 			{
 				value = TrackLayoutMode.SPLIT;
 			}

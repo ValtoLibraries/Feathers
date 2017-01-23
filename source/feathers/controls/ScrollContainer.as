@@ -113,6 +113,7 @@ package feathers.controls
 		 */
 		public static const ALTERNATE_STYLE_NAME_TOOLBAR:String = "feathers-toolbar-scroll-container";
 
+		[Deprecated(replacement="feathers.controls.ScrollPolicy.AUTO",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.ScrollPolicy.AUTO</code>.
@@ -124,6 +125,7 @@ package feathers.controls
 		 */
 		public static const SCROLL_POLICY_AUTO:String = "auto";
 
+		[Deprecated(replacement="feathers.controls.ScrollPolicy.ON",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.ScrollPolicy.ON</code>.
@@ -135,6 +137,7 @@ package feathers.controls
 		 */
 		public static const SCROLL_POLICY_ON:String = "on";
 
+		[Deprecated(replacement="feathers.controls.ScrollPolicy.OFF",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.ScrollPolicy.OFF</code>.
@@ -146,6 +149,7 @@ package feathers.controls
 		 */
 		public static const SCROLL_POLICY_OFF:String = "off";
 
+		[Deprecated(replacement="feathers.controls.ScrollBarDisplayMode.FLOAT",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.ScrollBarDisplayMode.FLOAT</code>.
@@ -157,6 +161,7 @@ package feathers.controls
 		 */
 		public static const SCROLL_BAR_DISPLAY_MODE_FLOAT:String = "float";
 
+		[Deprecated(replacement="feathers.controls.ScrollBarDisplayMode.FIXED",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.ScrollBarDisplayMode.FIXED</code>.
@@ -168,6 +173,7 @@ package feathers.controls
 		 */
 		public static const SCROLL_BAR_DISPLAY_MODE_FIXED:String = "fixed";
 
+		[Deprecated(replacement="feathers.controls.ScrollBarDisplayMode.FIXED_FLOAT",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.ScrollBarDisplayMode.FIXED_FLOAT</code>.
@@ -179,6 +185,7 @@ package feathers.controls
 		 */
 		public static const SCROLL_BAR_DISPLAY_MODE_FIXED_FLOAT:String = "fixedFloat";
 
+		[Deprecated(replacement="feathers.controls.ScrollBarDisplayMode.NONE",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.ScrollBarDisplayMode.NONE</code>.
@@ -190,6 +197,7 @@ package feathers.controls
 		 */
 		public static const SCROLL_BAR_DISPLAY_MODE_NONE:String = "none";
 
+		[Deprecated(replacement="feathers.layout.RelativePosition.RIGHT",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.layout.RelativePosition.RIGHT</code>.
@@ -201,6 +209,7 @@ package feathers.controls
 		 */
 		public static const VERTICAL_SCROLL_BAR_POSITION_RIGHT:String = "right";
 
+		[Deprecated(replacement="feathers.layout.RelativePosition.LEFT",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.layout.RelativePosition.LEFT</code>.
@@ -212,6 +221,7 @@ package feathers.controls
 		 */
 		public static const VERTICAL_SCROLL_BAR_POSITION_LEFT:String = "left";
 
+		[Deprecated(replacement="feathers.controls.ScrollInteractionMode.TOUCH",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.ScrollInteractionMode.TOUCH</code>.
@@ -223,6 +233,7 @@ package feathers.controls
 		 */
 		public static const INTERACTION_MODE_TOUCH:String = "touch";
 
+		[Deprecated(replacement="feathers.controls.ScrollInteractionMode.MOUSE",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.ScrollInteractionMode.MOUSE</code>.
@@ -234,6 +245,7 @@ package feathers.controls
 		 */
 		public static const INTERACTION_MODE_MOUSE:String = "mouse";
 
+		[Deprecated(replacement="feathers.controls.ScrollInteractionMode.TOUCH_AND_SCROLL_BARS",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.ScrollInteractionMode.TOUCH_AND_SCROLL_BARS</code>.
@@ -245,6 +257,7 @@ package feathers.controls
 		 */
 		public static const INTERACTION_MODE_TOUCH_AND_SCROLL_BARS:String = "touchAndScrollBars";
 
+		[Deprecated(replacement="feathers.layout.Direction.VERTICAL",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.layout.Direction.VERTICAL</code>.
@@ -256,6 +269,7 @@ package feathers.controls
 		 */
 		public static const MOUSE_WHEEL_SCROLL_DIRECTION_VERTICAL:String = "vertical";
 
+		[Deprecated(replacement="feathers.layout.Direction.HORIZONTAL",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.layout.Direction.HORIZONTAL</code>.
@@ -267,6 +281,7 @@ package feathers.controls
 		 */
 		public static const MOUSE_WHEEL_SCROLL_DIRECTION_HORIZONTAL:String = "horizontal";
 
+		[Deprecated(replacement="feathers.controls.DecelerationRate.NORMAL",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.DecelerationRate.NORMAL</code>.
@@ -278,6 +293,7 @@ package feathers.controls
 		 */
 		public static const DECELERATION_RATE_NORMAL:Number = 0.998;
 
+		[Deprecated(replacement="feathers.controls.DecelerationRate.FAST",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.DecelerationRate.FAST</code>.
@@ -289,6 +305,7 @@ package feathers.controls
 		 */
 		public static const DECELERATION_RATE_FAST:Number = 0.99;
 
+		[Deprecated(replacement="feathers.controls.AutoSizeMode.STAGE",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.AutoSizeMode.STAGE</code>.
@@ -300,6 +317,7 @@ package feathers.controls
 		 */
 		public static const AUTO_SIZE_MODE_STAGE:String = "stage";
 
+		[Deprecated(replacement="feathers.controls.AutoSizeMode.CONTENT",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.controls.AutoSizeMode.CONTENT</code>.
@@ -450,11 +468,11 @@ package feathers.controls
 			{
 				if(this._autoSizeMode === AutoSizeMode.STAGE)
 				{
-					this.stage.addEventListener(Event.RESIZE, stage_resizeHandler);
+					this.stage.addEventListener(Event.RESIZE, scrollContainer_stage_resizeHandler);
 				}
 				else
 				{
-					this.stage.removeEventListener(Event.RESIZE, stage_resizeHandler);
+					this.stage.removeEventListener(Event.RESIZE, scrollContainer_stage_resizeHandler);
 				}
 			}
 			this.invalidate(INVALIDATION_FLAG_SIZE);
@@ -850,7 +868,7 @@ package feathers.controls
 				//that the new stage dimensions are accounted for.
 				this.invalidate(INVALIDATION_FLAG_SIZE);
 
-				this.stage.addEventListener(Event.RESIZE, stage_resizeHandler);
+				this.stage.addEventListener(Event.RESIZE, scrollContainer_stage_resizeHandler);
 			}
 		}
 
@@ -859,7 +877,7 @@ package feathers.controls
 		 */
 		protected function scrollContainer_removedFromStageHandler(event:Event):void
 		{
-			this.stage.removeEventListener(Event.RESIZE, stage_resizeHandler);
+			this.stage.removeEventListener(Event.RESIZE, scrollContainer_stage_resizeHandler);
 		}
 
 		/**
@@ -889,7 +907,7 @@ package feathers.controls
 		/**
 		 * @private
 		 */
-		protected function stage_resizeHandler(event:Event):void
+		protected function scrollContainer_stage_resizeHandler(event:Event):void
 		{
 			this.invalidate(INVALIDATION_FLAG_SIZE);
 		}

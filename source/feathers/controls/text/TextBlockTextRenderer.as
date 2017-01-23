@@ -129,6 +129,7 @@ package feathers.controls.text
 		 */
 		protected static const FUZZY_TRUNCATION_DIFFERENCE:Number = 0.000001;
 
+		[Deprecated(replacement="feathers.layout.HorizontalAlign.LEFT",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.layout.HorizontalAlign.LEFT</code>.
@@ -140,6 +141,7 @@ package feathers.controls.text
 		 */
 		public static const TEXT_ALIGN_LEFT:String = "left";
 
+		[Deprecated(replacement="feathers.layout.HorizontalAlign.CENTER",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.layout.HorizontalAlign.CENTER</code>.
@@ -151,6 +153,7 @@ package feathers.controls.text
 		 */
 		public static const TEXT_ALIGN_CENTER:String = "center";
 
+		[Deprecated(replacement="feathers.layout.HorizontalAlign.RIGHT",since="3.0.0")]
 		/**
 		 * @private
 		 * DEPRECATED: Replaced by <code>feathers.layout.HorizontalAlign.RIGHT</code>.
@@ -1949,6 +1952,16 @@ package feathers.controls.text
 					else
 					{
 						this._fontStylesElementFormat.kerning = Kerning.OFF;
+					}
+					if("letterSpacing" in textFormat)
+					{
+						//letterSpacing was added after Starling 2.1
+						var letterSpacing:Number = textFormat["letterSpacing"] / 2;
+						//adobe documentation recommends splitting it between
+						//left and right
+						//http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/ElementFormat.html#trackingRight
+						this._fontStylesElementFormat.trackingRight = letterSpacing;
+						this._fontStylesElementFormat.trackingLeft = letterSpacing;
 					}
 					this._currentLeading = textFormat.leading;
 					this._currentVerticalAlign = textFormat.verticalAlign;
