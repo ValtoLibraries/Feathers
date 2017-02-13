@@ -1618,6 +1618,40 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		protected var _asyncTextureUpload:Boolean = true;
+
+		/**
+		 * Determines if textures loaded from URLs are uploaded asynchronously
+		 * or not.
+		 * 
+		 * <p>Note: depending on the version of AIR and the platform it is
+		 * running on, textures may be uploaded synchronously, even when this
+		 * property is <code>true</code>.</p>
+		 *
+		 * <p>In the following example, the texture will be uploaded
+		 * synchronously:</p>
+		 *
+		 * <listing version="3.0">
+		 * loader.asyncTextureUpload = false;</listing>
+		 * 
+		 * @default true
+		 */
+		public function get asyncTextureUpload():Boolean
+		{
+			return this._asyncTextureUpload;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set asyncTextureUpload(value:Boolean):void
+		{
+			this._asyncTextureUpload = value;
+		}
+
+		/**
+		 * @private
+		 */
 		override public function dispose():void
 		{
 			this._isRestoringTexture = false;
@@ -2054,9 +2088,13 @@ package feathers.controls
 				{
 					this._texture.dispose();
 				}
-				else if(this._textureCache && this._source is String)
+				else if(this._textureCache !== null)
 				{
-					this._textureCache.releaseTexture(this._source as String);
+					var cacheKey:String = this.sourceToTextureCacheKey(this._source);
+					if(cacheKey !== null)
+					{
+						this._textureCache.releaseTexture(cacheKey);
+					}
 				}
 			}
 			if(this._pendingBitmapDataTexture)
@@ -2128,10 +2166,11 @@ package feathers.controls
 		 */
 		protected function findSourceInCache():Boolean
 		{
-			var sourceURL:String = this._source as String;
-			if(this._textureCache && !this._isRestoringTexture && this._textureCache.hasTexture(sourceURL))
+			var cacheKey:String = this.sourceToTextureCacheKey(this._source);
+			if(this._textureCache !== null && !this._isRestoringTexture &&
+				cacheKey !== null && this._textureCache.hasTexture(cacheKey))
 			{
-				this._texture = this._textureCache.retainTexture(sourceURL);
+				this._texture = this._textureCache.retainTexture(cacheKey);
 				this._isTextureOwner = false;
 				this._isRestoringTexture = false;
 				this._isLoaded = true;
@@ -2140,6 +2179,20 @@ package feathers.controls
 				return true;
 			}
 			return false;
+		}
+
+		/**
+		 * @private
+		 * Subclasses may override this method to support sources other than
+		 * URLs in the texture cache.
+		 */
+		protected function sourceToTextureCacheKey(source:Object):String
+		{
+			if(source is String)
+			{
+				return source as String;
+			}
+			return null;
 		}
 
 		/**
@@ -2200,26 +2253,51 @@ package feathers.controls
 					this._source, this._textureFormat, this._scaleFactor);
 				if(this._textureCache)
 				{
-					this._textureCache.addTexture(this._source as String, this._texture, true);
+					var cacheKey:String = this.sourceToTextureCacheKey(this._source);
+					if(cacheKey !== null)
+					{
+						this._textureCache.addTexture(cacheKey, this._texture, true);
+					}
 				}
 			}
-			this._texture.root.uploadBitmapData(bitmapData);
-			if(this.image !== null)
+			if(this._texture.root.uploadBitmapData.length === 2)
 			{
-				//this isn't technically required because other properties of
-				//the Image will be changed, but to avoid potential future
-				//refactoring headaches, it won't hurt to be extra careful.
-				this.image.setRequiresRedraw();
+				//using brackets as temporary workaround to make compiler happy
+				//when using Starling 2.1
+				this._texture.root["uploadBitmapData"](bitmapData, function():void
+				{
+					if(image !== null)
+					{
+						//this isn't technically required because other properties of
+						//the Image will be changed, but to avoid potential future
+						//refactoring headaches, it won't hurt to be extra careful.
+						image.setRequiresRedraw();
+					}
+					bitmapData.dispose();
+					_isTextureOwner = _textureCache === null;
+					_isRestoringTexture = false;
+					_isLoaded = true;
+					invalidate(INVALIDATION_FLAG_DATA);
+					dispatchEventWith(starling.events.Event.COMPLETE);
+				});
 			}
-			bitmapData.dispose();
-			
-			//if we have a cache for the textures, then the cache is the owner
-			//because other ImageLoaders may use the same texture.
-			this._isTextureOwner = this._textureCache === null;
-			this._isRestoringTexture = false;
-			this._isLoaded = true;
-			this.invalidate(INVALIDATION_FLAG_DATA);
-			this.dispatchEventWith(starling.events.Event.COMPLETE);
+			else //fallback for Starling 2.1
+			{
+				this._texture.root.uploadBitmapData(bitmapData);
+				if(this.image !== null)
+				{
+					//this isn't technically required because other properties of
+					//the Image will be changed, but to avoid potential future
+					//refactoring headaches, it won't hurt to be extra careful.
+					this.image.setRequiresRedraw();
+				}
+				bitmapData.dispose();
+				this._isTextureOwner = this._textureCache === null;
+				this._isRestoringTexture = false;
+				this._isLoaded = true;
+				this.invalidate(INVALIDATION_FLAG_DATA);
+				this.dispatchEventWith(starling.events.Event.COMPLETE);
+			}
 		}
 
 		/**
@@ -2267,7 +2345,11 @@ package feathers.controls
 					this._source, this._textureFormat, this._scaleFactor);
 				if(this._textureCache)
 				{
-					this._textureCache.addTexture(this._source as String, this._texture, true);
+					var cacheKey:String = this.sourceToTextureCacheKey(this._source);
+					if(cacheKey !== null)
+					{
+						this._textureCache.addTexture(cacheKey, this._texture, true);
+					}
 				}
 			}
 			rawData.clear();
@@ -2483,9 +2565,13 @@ package feathers.controls
 
 			var bitmapData:BitmapData = bitmap.bitmapData;
 
-			//attempt to reuse the existing texture so that we don't need to
-			//create a new one.
-			var canReuseTexture:Boolean = this._texture &&
+			//if the upload is synchronous, attempt to reuse the existing
+			//texture so that we don't need to create a new one.
+			//when AIR-4198247 is fixed in a stable build, this can be removed
+			//(perhaps with some kind of AIR version detection, though)
+			var canReuseTexture:Boolean =
+				this._texture !== null &&
+				(!this._asyncTextureUpload || this._texture.root.uploadBitmapData.length === 1) &&
 				this._texture.nativeWidth === bitmapData.width &&
 				this._texture.nativeHeight === bitmapData.height &&
 				this._texture.scale === this._scaleFactor &&
