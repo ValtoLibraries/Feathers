@@ -5,6 +5,8 @@ Noteworthy changes in official, stable releases of [Feathers UI](http://feathers
 ## 3.2.0 - In Development
 
 * PullToRefresh: new example that demonstrates how to support the popular "pull to refresh" gesture with Feathers lists and other scrolling containers.
+* TabNavigator: support for swiping between tabs.
+* ListCollection: added filterFunction property to support filtering items in data providers.
 * API Reference: All classes now specify the version of Feathers when they were first added.
 * Added [Deprecated] metadata to deprecated APIs.
 * Alert: added acceptButtonIndex and cancelButtonIndex to allow keyboard (or hardware back button) control over alert.
@@ -19,6 +21,7 @@ Noteworthy changes in official, stable releases of [Feathers UI](http://feathers
 * Button: fixed issue where label text renderer measurement was incorrect if minWidth or minHeight is set explicitly.
 * CalloutPopUpContentManager: similar to Callout, the direction property is now deprecated and added supportedPositions as its replacement.
 * DateTimeSpinner: added backgroundSkin, backgroundDisabledSkin, and padding properties.
+* DateTimeSpinner: fixed issue where pending value of scrollToDate() was not cleared.
 * Drawers: content property may now be null when validating. However, it should not be null when opening a drawer.
 * FeathersControl; layoutData is set to null when disposed to avoid potential memory leaks.
 * FeathersControl: Removes event listeners on styleNameList when disposed so that they cannot be called for no reason.
@@ -37,7 +40,6 @@ Noteworthy changes in official, stable releases of [Feathers UI](http://feathers
 * List, GroupedList; when updateAll() is called on the data provider, items that were added or removed from source are now rendered.
 * List, GroupedList: fixed issue where event listeners were not added to default layout created in initialize().
 * List, GroupedList: fixed issue where an item could not receive a new factoryID after its index changes.
-* ListCollection: added filterFunction property to support filtering.
 * ListCollection, HierarchicalCollection: removeAll() no longer results in CollectionEventType.RESET. This should not have been considered a drastic reset. CollectionEventType.REMOVE_ALL is dispatched instead.
 * PickerList: added itemRendererFactory and customItemRendererStyleName. They no longer need to be set in the listFactory. However, existing code that sets them in the listFactory will continue to work correctly.
 * Navigators: validates active screen when navigator validates to avoid flickering on next frame with delayed automatic validation.
@@ -46,6 +48,7 @@ Noteworthy changes in official, stable releases of [Feathers UI](http://feathers
 * Scroller: fixed issue where a layout change would not cause the scroller to measure its content again.
 * Scroller: added horizontalScrollBarPosition to allow the horizontal scroll bar to appear on top.
 * Scroller: added support for pull views on top, right, bottom, and left to support "pull to refresh" gesture.
+* Scroller: fixed issue where scrollToPageIndex() would not result in dispatch of FeathersEventType.SCROLL_START and FeathersEventType.SCROLL_COMPLETE.
 * SpinnerList: fixed issue where scroll position was not updated if layout snapInterval changed.
 * StageTextTextEditor: position of StageText can no longer be larger than 8191 or smaller than -8192 to avoid a runtime error.
 * StageTextTextEditor: added clearButtonMode property to support new StageText API.
@@ -59,6 +62,7 @@ Noteworthy changes in official, stable releases of [Feathers UI](http://feathers
 * TouchToState: new utility class to change a component's state based on TouchPhase values.
 * VerticalCenteredPopUpContentManager: fixed margin setter that passed 0 to marginTop/marginRight/marginBottom/marginLeft instead of new value.
 * VerticalLayout: alignment of headers with getScrollPositionForIndex() defaults to VerticalAlign.TOP because that makes more sense for headers instead of VerticalAlign.MIDDLE.
+* VideoPlayer: fixed issue where display state was not properly updated when exiting full screen with the Escape key.
 
 ## 3.1.2 - January 2017
 
