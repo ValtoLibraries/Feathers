@@ -181,14 +181,14 @@ package feathers.data
 	 * @eventType feathers.events.CollectionEventType.UPDATE_ALL
 	 */
 	[Event(name="updateAll",type="starling.events.Event")]
-	
+
 	/**
 	 * Wraps a two-dimensional data source with a common API for use with UI
 	 * controls that support this type of data.
 	 *
 	 * @productversion Feathers 1.0.0
 	 */
-	public class HierarchicalCollection extends EventDispatcher
+	public class HierarchicalCollection extends EventDispatcher implements IHierarchicalCollection
 	{
 		public function HierarchicalCollection(data:Object = null)
 		{
@@ -258,7 +258,7 @@ package feathers.data
 		}
 
 		/**
-		 * Determines if a node from the data source is a branch.
+		 * @copy feathers.data.IHierarchicalCollection#isBranch()
 		 */
 		public function isBranch(node:Object):Boolean
 		{
@@ -266,7 +266,9 @@ package feathers.data
 		}
 
 		/**
-		 * The number of items at the specified location in the collection.
+		 * @copy feathers.data.IHierarchicalCollection#getLength()
+		 *
+		 * @see #getLengthAtLocation()
 		 */
 		public function getLength(...rest:Array):int
 		{
@@ -275,15 +277,15 @@ package feathers.data
 		}
 
 		/**
-		 * Call <code>updateItemAt()</code> to manually inform any component
-		 * rendering the <code>HierarchicalCollection</code> that the properties
-		 * of a single item in the collection have changed, and that any views
-		 * associated with the item should be updated. The collection will
-		 * dispatch the <code>CollectionEventType.UPDATE_ITEM</code> event.
-		 * 
-		 * <p>Alternatively, the item can dispatch an event when one of its
-		 * properties has changed, and  a custom item renderer can listen for
-		 * that event and update itself automatically.</p>
+		 * @copy feathers.data.IHierarchicalCollection#getLengthAtLocation()
+		 */
+		public function getLengthAtLocation(location:Vector.<int> = null):int
+		{
+			return this._dataDescriptor.getLengthAtLocation(this._data, location);
+		}
+
+		/**
+		 * @copy feathers.data.IHierarchicalCollection#updateItemAt()
 		 * 
 		 * @see #updateAll()
 		 */
@@ -294,15 +296,7 @@ package feathers.data
 		}
 
 		/**
-		 * Call <code>updateAll()</code> to manually inform any component
-		 * rendering the <code>HierarchicalCollection</code> that the properties
-		 * of all, or many, of the collection's items have changed, and that any
-		 * rendered views should be updated. The collection will dispatch the
-		 * <code>CollectionEventType.UPDATE_ALL</code> event.
-		 *
-		 * <p>Alternatively, the item can dispatch an event when one of its
-		 * properties has changed, and  a custom item renderer can listen for
-		 * that event and update itself automatically.</p>
+		 * @copy feathers.data.IHierarchicalCollection#updateAll()
 		 *
 		 * @see #updateItemAt()
 		 */
@@ -312,7 +306,9 @@ package feathers.data
 		}
 
 		/**
-		 * Returns the item at the specified location in the collection.
+		 * @copy feathers.data.IHierarchicalCollection#getItemAt()
+		 *
+		 * @see #getItemAtLocation()
 		 */
 		public function getItemAt(index:int, ...rest:Array):Object
 		{
@@ -322,8 +318,15 @@ package feathers.data
 		}
 
 		/**
-		 * Determines which location the item appears at within the collection. If
-		 * the item isn't in the collection, returns <code>null</code>.
+		 * @copy feathers.data.IHierarchicalCollection#getItemAtLocation()
+		 */
+		public function getItemAtLocation(location:Vector.<int>):Object
+		{
+			return this._dataDescriptor.getItemAtLocation(this._data, location);
+		}
+
+		/**
+		 * @copy feathers.data.IHierarchicalCollection#getItemLocation()
 		 */
 		public function getItemLocation(item:Object, result:Vector.<int> = null):Vector.<int>
 		{
@@ -331,7 +334,9 @@ package feathers.data
 		}
 
 		/**
-		 * Adds an item to the collection, at the specified location.
+		 * @copy feathers.data.IHierarchicalCollection#addItemAt()
+		 *
+		 * @see #addItemAtLocation()
 		 */
 		public function addItemAt(item:Object, index:int, ...rest:Array):void
 		{
@@ -346,8 +351,17 @@ package feathers.data
 		}
 
 		/**
-		 * Removes the item at the specified location from the collection and
-		 * returns it.
+		 * @copy feathers.data.IHierarchicalCollection#addItemAtLocation()
+		 */
+		public function addItemAtLocation(item:Object, location:Vector.<int>):void
+		{
+			return this._dataDescriptor.addItemAtLocation(this._data, item, location);
+		}
+
+		/**
+		 * @copy feathers.data.IHierarchicalCollection#removeItemAt()
+		 * 
+		 * @see #removeItemAtLocation()
 		 */
 		public function removeItemAt(index:int, ...rest:Array):Object
 		{
@@ -361,7 +375,15 @@ package feathers.data
 		}
 
 		/**
-		 * Removes a specific item from the collection.
+		 * @copy feathers.data.IHierarchicalCollection#removeItemAtLocation()
+		 */
+		public function removeItemAtLocation(location:Vector.<int>):Object
+		{
+			return this._dataDescriptor.removeItemAtLocation(this._data, location);
+		}
+
+		/**
+		 * @copy feathers.data.IHierarchicalCollection#removeItem()
 		 */
 		public function removeItem(item:Object):void
 		{
@@ -380,7 +402,7 @@ package feathers.data
 		}
 
 		/**
-		 * Removes all items from the collection.
+		 * @copy feathers.data.IHierarchicalCollection#removeAll()
 		 */
 		public function removeAll():void
 		{
@@ -394,7 +416,9 @@ package feathers.data
 		}
 
 		/**
-		 * Replaces the item at the specified location with a new item.
+		 * @copy feathers.data.IHierarchicalCollection#setItemAt()
+		 *
+		 * @see #setItemAtLocation()
 		 */
 		public function setItemAt(item:Object, index:int, ...rest:Array):void
 		{
@@ -409,32 +433,15 @@ package feathers.data
 		}
 
 		/**
-		 * Calls a function for each group in the collection and another
-		 * function for each item in a group, where each function handles any
-		 * properties that require disposal on these objects. For example,
-		 * display objects or textures may need to be disposed. You may pass in
-		 * a value of <code>null</code> for either function if you don't have
-		 * anything to dispose in one or the other.
-		 *
-		 * <p>The function to dispose a group is expected to have the following signature:</p>
-		 * <pre>function( group:Object ):void</pre>
-		 *
-		 * <p>The function to dispose an item is expected to have the following signature:</p>
-		 * <pre>function( item:Object ):void</pre>
-		 *
-		 * <p>In the following example, the items in the collection are disposed:</p>
-		 *
-		 * <listing version="3.0">
-		 * collection.dispose( function( group:Object ):void
-		 * {
-		 *     var content:DisplayObject = DisplayObject(group.content);
-		 *     content.dispose();
-		 * },
-		 * function( item:Object ):void
-		 * {
-		 *     var accessory:DisplayObject = DisplayObject(item.accessory);
-		 *     accessory.dispose();
-		 * },)</listing>
+		 * @copy feathers.data.IHierarchicalCollection#setItemAtLocation()
+		 */
+		public function setItemAtLocation(item:Object, location:Vector.<int>):void
+		{
+			this._data.setItemAtLocation(item, location);
+		}
+
+		/**
+		 * @copy feathers.data.IHierarchicalCollection#dispose()
 		 *
 		 * @see http://doc.starling-framework.org/core/starling/display/DisplayObject.html#dispose() starling.display.DisplayObject.dispose()
 		 * @see http://doc.starling-framework.org/core/starling/textures/Texture.html#dispose() starling.textures.Texture.dispose()

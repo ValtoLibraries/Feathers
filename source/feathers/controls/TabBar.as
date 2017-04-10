@@ -13,7 +13,7 @@ package feathers.controls
 	import feathers.core.IValidating;
 	import feathers.core.PropertyProxy;
 	import feathers.core.ToggleGroup;
-	import feathers.data.ListCollection;
+	import feathers.data.IListCollection;
 	import feathers.events.CollectionEventType;
 	import feathers.events.FeathersEventType;
 	import feathers.layout.Direction;
@@ -398,7 +398,7 @@ package feathers.controls
 	 * tab bar:</p>
 	 *
 	 * <listing version="3.0">
-	 * tabs.dataProvider = new ListCollection(
+	 * tabs.dataProvider = new ArrayCollection(
 	 * [
 	 *     { label: "1" },
 	 *     { label: "2" },
@@ -438,7 +438,7 @@ package feathers.controls
 	 *
 	 * <listing version="3.0">
 	 * var tabs:TabBar = new TabBar();
-	 * tabs.dataProvider = new ListCollection(
+	 * tabs.dataProvider = new ArrayCollection(
 	 * [
 	 *     { label: "One" },
 	 *     { label: "Two" },
@@ -728,7 +728,7 @@ package feathers.controls
 		/**
 		 * @private
 		 */
-		protected var _dataProvider:ListCollection;
+		protected var _dataProvider:IListCollection;
 
 		/**
 		 * The collection of data to be displayed with tabs. The default
@@ -754,7 +754,7 @@ package feathers.controls
 		 * <p>The following example passes in a data provider:</p>
 		 *
 		 * <listing version="3.0">
-		 * list.dataProvider = new ListCollection(
+		 * list.dataProvider = new ArrayCollection(
 		 * [
 		 *     { label: "General", defaultIcon: new Image( generalTexture ) },
 		 *     { label: "Security", defaultIcon: new Image( securityTexture ) },
@@ -764,8 +764,10 @@ package feathers.controls
 		 * @default null
 		 *
 		 * @see #tabInitializer
+		 * @see feathers.data.ArrayCollection
+		 * @see feathers.data.VectorCollection
 		 */
-		public function get dataProvider():ListCollection
+		public function get dataProvider():IListCollection
 		{
 			return this._dataProvider;
 		}
@@ -773,7 +775,7 @@ package feathers.controls
 		/**
 		 * @private
 		 */
-		public function set dataProvider(value:ListCollection):void
+		public function set dataProvider(value:IListCollection):void
 		{
 			if(this._dataProvider == value)
 			{

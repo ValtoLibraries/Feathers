@@ -37,10 +37,10 @@ An [`IAutoCompleteSource`](../api-reference/feathers/data/IAutoCompleteSource.ht
 
 ### `LocalAutoCompleteSource`
 
-The simplest option involves passing a [`ListCollection`](../api-reference/feathers/data/ListCollection.html) to [`LocalAutoCompleteSource`](../api-reference/feathers/data/LocalAutoCompleteSource.html). As the user types, the collection will be filtered to display appropriate suggestions. 
+The simplest option involves passing a collection, such as [`VectorCollection`](../api-reference/feathers/data/VectorCollection.html), to [`LocalAutoCompleteSource`](../api-reference/feathers/data/LocalAutoCompleteSource.html). As the user types, the collection will be filtered to display appropriate suggestions. 
 
 ``` code
-input.source = new LocalAutoCompleteSource( new ListCollection(new <String>
+input.source = new LocalAutoCompleteSource( new VectorCollection(new <String>
 [
 	"Apple",
 	"Banana",
@@ -77,8 +77,7 @@ In some cases, you may want to request personalized suggestions from a server in
 To load suggestions from the web, we need a URL. The [`urlRequestFunction`](../api-reference/feathers/data/URLAutoCompleteSource.html#urlRequestFunction) property can be used to generate a [`URLRequest`](http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/URLRequest.html):
 
 ``` code
-var source:URLAutoCompleteSource = new URLAutoCompleteSource();
-source.urlRequestFunction = function( textToMatch:String ):URLRequest
+function createURLRequest( textToMatch:String ):URLRequest
 {
 	var request:URLRequest = new URLRequest( "http://example.com/search_suggestions" );
 	var variables:URLVariables = new URLVariables();
@@ -86,7 +85,7 @@ source.urlRequestFunction = function( textToMatch:String ):URLRequest
 	request.data = variables;
 	return request;
 };
-input.source = source;
+input.source = new URLAutoCompleteSource( createURLRequest );
 ```
 
 The `urlRequestFunction` takes one argument, the text entered into the `AutoComplete`. We can pass that to the server to return relevant suggestions.
@@ -132,7 +131,7 @@ source.parseResultFunction = function( result:String ):Object
 };
 ```
 
-The `parseResultFunction` may return any type of object that may be passed to a `ListCollection`, such as an `Array` or a `Vector`.
+The `parseResultFunction` may return an [`IListCollection`](../api-reference/feathers/data/IListCollection.html) implementation, such as an [`ArrayCollection`](../api-reference/feathers/data/ArrayCollection.html) or a [`VectorCollection`](../api-reference/feathers/data/VectorCollection.html).
 
 ## Customize suggestion behavior
 

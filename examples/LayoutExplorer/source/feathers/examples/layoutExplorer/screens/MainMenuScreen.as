@@ -4,6 +4,7 @@ package feathers.examples.layoutExplorer.screens
 	import feathers.controls.PanelScreen;
 	import feathers.controls.renderers.DefaultListItemRenderer;
 	import feathers.controls.renderers.IListItemRenderer;
+	import feathers.data.ArrayCollection;
 	import feathers.data.ListCollection;
 	import feathers.events.FeathersEventType;
 	import feathers.layout.AnchorLayout;
@@ -36,6 +37,7 @@ package feathers.examples.layoutExplorer.screens
 		public static const SHOW_TILED_ROWS:String = "showTiledRows";
 		public static const SHOW_TILED_COLUMNS:String = "showTiledColumns";
 		public static const SHOW_WATERFALL:String = "showWaterfall";
+		public static const SHOW_SLIDE_SHOW:String = "showSlideShow";
 
 		public function MainMenuScreen()
 		{
@@ -59,7 +61,7 @@ package feathers.examples.layoutExplorer.screens
 			this.layout = new AnchorLayout();
 
 			this._list = new List();
-			this._list.dataProvider = new ListCollection(
+			this._list.dataProvider = new ArrayCollection(
 			[
 				{ text: "Anchor", event: SHOW_ANCHOR },
 				{ text: "Flow", event: SHOW_FLOW },
@@ -68,6 +70,7 @@ package feathers.examples.layoutExplorer.screens
 				{ text: "Tiled Rows", event: SHOW_TILED_ROWS },
 				{ text: "Tiled Columns", event: SHOW_TILED_COLUMNS },
 				{ text: "Waterfall", event: SHOW_WATERFALL },
+				{ text: "Slide Show", event: SHOW_SLIDE_SHOW },
 			]);
 			this._list.layoutData = new AnchorLayoutData(0, 0, 0, 0);
 			this._list.verticalScrollPosition = this.savedVerticalScrollPosition;

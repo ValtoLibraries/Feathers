@@ -2,7 +2,8 @@ package feathers.examples.pullToRefresh
 {
 	import feathers.controls.List;
 	import feathers.controls.PanelScreen;
-	import feathers.data.ListCollection;
+	import feathers.data.ArrayCollection;
+	import feathers.data.IListCollection;
 	import feathers.events.FeathersEventType;
 	import feathers.layout.AnchorLayout;
 	import feathers.layout.AnchorLayoutData;
@@ -63,7 +64,7 @@ package feathers.examples.pullToRefresh
 			//releases, the list will dispatch Event.UPDATE
 			this._list.addEventListener(Event.UPDATE, list_updateHandler);
 
-			this._list.dataProvider = new ListCollection();
+			this._list.dataProvider = new ArrayCollection();
 			this._list.layoutData = new AnchorLayoutData(0, 0, 0, 0);
 			this.addChild(this._list);
 
@@ -100,7 +101,7 @@ package feathers.examples.pullToRefresh
 			this._timer.removeEventListener(TimerEvent.TIMER_COMPLETE, timerCompleteHandler);
 			this._timer = null;
 
-			var collection:ListCollection = this._list.dataProvider;
+			var collection:IListCollection = this._list.dataProvider;
 			//we don't need to remove all of the old items. we could simply add
 			//the new ones to the beginning instead.
 			//if not removing all items, be aware that the new data might

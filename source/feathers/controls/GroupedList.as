@@ -15,7 +15,7 @@ package feathers.controls
 	import feathers.controls.supportClasses.GroupedListDataViewPort;
 	import feathers.core.IFocusContainer;
 	import feathers.core.PropertyProxy;
-	import feathers.data.HierarchicalCollection;
+	import feathers.data.IHierarchicalCollection;
 	import feathers.events.CollectionEventType;
 	import feathers.layout.HorizontalAlign;
 	import feathers.layout.ILayout;
@@ -805,7 +805,7 @@ package feathers.controls
 		/**
 		 * @private
 		 */
-		protected var _dataProvider:HierarchicalCollection;
+		protected var _dataProvider:IHierarchicalCollection;
 
 		/**
 		 * The collection of data displayed by the list. Changing this property
@@ -889,7 +889,7 @@ package feathers.controls
 		 * @see feathers.data.HierarchicalCollection
 		 * @see feathers.data.IHierarchicalCollectionDataDescriptor
 		 */
-		public function get dataProvider():HierarchicalCollection
+		public function get dataProvider():IHierarchicalCollection
 		{
 			return this._dataProvider;
 		}
@@ -897,7 +897,7 @@ package feathers.controls
 		/**
 		 * @private
 		 */
-		public function set dataProvider(value:HierarchicalCollection):void
+		public function set dataProvider(value:IHierarchicalCollection):void
 		{
 			if(this._dataProvider == value)
 			{
@@ -970,6 +970,11 @@ package feathers.controls
 			}
 			this.invalidate(INVALIDATION_FLAG_SELECTED);
 		}
+
+		/**
+		 * @private
+		 */
+		protected var _helperLocation:Vector.<int> = new <int>[];
 
 		/**
 		 * @private
@@ -1067,7 +1072,12 @@ package feathers.controls
 			{
 				return null;
 			}
-			return this._dataProvider.getItemAt(this._selectedGroupIndex, this._selectedItemIndex);
+			this._helperLocation.length = 2;
+			this._helperLocation[0] = this._selectedGroupIndex;
+			this._helperLocation[1] = this._selectedItemIndex;
+			var result:Object = this._dataProvider.getItemAt(this._selectedGroupIndex, this._selectedItemIndex);
+			this._helperLocation.length = 0;
+			return result;
 		}
 
 		/**
@@ -3036,11 +3046,18 @@ package feathers.controls
 				{
 					if(this.pendingItemIndex >= 0)
 					{
+						this._helperLocation.length = 2;
+						this._helperLocation[0] = this._selectedGroupIndex;
+						this._helperLocation[1] = this._selectedItemIndex;
 						pendingData = this._dataProvider.getItemAt(this.pendingGroupIndex, this.pendingItemIndex);
+						this._helperLocation.length = 0
 					}
 					else
 					{
+						this._helperLocation.length = 1;
+						this._helperLocation[0] = this._selectedGroupIndex;
 						pendingData = this._dataProvider.getItemAt(this.pendingGroupIndex);
+						this._helperLocation.length = 0;
 					}
 				}
 				if(pendingData is Object)
@@ -3084,96 +3101,26 @@ package feathers.controls
 			{
 				return;
 			}
-			var changedSelection:Boolean = false;
-			if(event.keyCode == Keyboard.HOME)
+			if(event.keyCode === Keyboard.HOME || event.keyCode === Keyboard.END ||
+				event.keyCode === Keyboard.PAGE_UP ||event.keyCode === Keyboard.PAGE_DOWN ||
+				event.keyCode === Keyboard.UP ||event.keyCode === Keyboard.DOWN ||
+				event.keyCode === Keyboard.LEFT ||event.keyCode === Keyboard.RIGHT)
 			{
-				if(this._dataProvider.getLength() > 0 && this._dataProvider.getLength(0) > 0)
+				this.dataViewPort.calculateNavigationDestination(this._selectedGroupIndex, this._selectedItemIndex, event.keyCode, this._helperLocation);
+				var newGroupIndex:int = this._helperLocation[0];
+				var newItemIndex:int = this._helperLocation[1];
+				if(newGroupIndex === -1 || newItemIndex === -1)
 				{
-					this.setSelectedLocation(0, 0);
-					changedSelection = true;
+					this.setSelectedLocation(-1, -1);
 				}
-			}
-			if(event.keyCode == Keyboard.END)
-			{
-				var groupIndex:int = this._dataProvider.getLength();
-				var itemIndex:int = -1;
-				do
+				else if(this._selectedGroupIndex !== newGroupIndex || this._selectedItemIndex !== newItemIndex)
 				{
-					groupIndex--;
-					if(groupIndex >= 0)
-					{
-						itemIndex = this._dataProvider.getLength(groupIndex) - 1;
-					}
+					this.setSelectedLocation(newGroupIndex, newItemIndex);
+					var point:Point = Pool.getPoint();
+					this.dataViewPort.getNearestScrollPositionForIndex(this._selectedGroupIndex, this.selectedItemIndex, point);
+					this.scrollToPosition(point.x, point.y, this._keyScrollDuration);
+					Pool.putPoint(point);
 				}
-				while(groupIndex > 0 && itemIndex < 0)
-				if(groupIndex >= 0 && itemIndex >= 0)
-				{
-					this.setSelectedLocation(groupIndex, itemIndex);
-					changedSelection = true;
-				}
-			}
-			else if(event.keyCode == Keyboard.UP)
-			{
-				groupIndex = this._selectedGroupIndex;
-				itemIndex = this._selectedItemIndex - 1;
-				if(itemIndex < 0)
-				{
-					do
-					{
-						groupIndex--;
-						if(groupIndex >= 0)
-						{
-							itemIndex = this._dataProvider.getLength(groupIndex) - 1;
-						}
-					}
-					while(groupIndex > 0 && itemIndex < 0)
-				}
-				if(groupIndex >= 0 && itemIndex >= 0)
-				{
-					this.setSelectedLocation(groupIndex, itemIndex);
-					changedSelection = true;
-				}
-			}
-			else if(event.keyCode == Keyboard.DOWN)
-			{
-				groupIndex = this._selectedGroupIndex;
-				if(groupIndex < 0)
-				{
-					itemIndex = -1;
-				}
-				else
-				{
-					itemIndex = this._selectedItemIndex + 1;
-				}
-				if(groupIndex < 0 || itemIndex >= this._dataProvider.getLength(groupIndex))
-				{
-					itemIndex = -1;
-					groupIndex++;
-					var groupCount:int = this._dataProvider.getLength();
-					while(groupIndex < groupCount && itemIndex < 0)
-					{
-						if(this._dataProvider.getLength(groupIndex) > 0)
-						{
-							itemIndex = 0;
-						}
-						else
-						{
-							groupIndex++;
-						}
-					}
-				}
-				if(groupIndex >= 0 && itemIndex >= 0)
-				{
-					this.setSelectedLocation(groupIndex, itemIndex);
-					changedSelection = true;
-				}
-			}
-			if(changedSelection)
-			{
-				var point:Point = Pool.getPoint();
-				this.dataViewPort.getNearestScrollPositionForIndex(this._selectedGroupIndex, this.selectedItemIndex, point);
-				this.scrollToPosition(point.x, point.y, this._keyScrollDuration);
-				Pool.putPoint(point);
 			}
 		}
 
