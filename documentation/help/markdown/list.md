@@ -141,7 +141,7 @@ We can give the list a background skin that fills the entire width and height of
 ``` code
 var skin:Image = new Image( texture );
 skin.scale9Grid = new Rectangle( 2, 2, 1, 6 );
-header.backgroundSkin = skin;
+list.backgroundSkin = skin;
 ```
 
 It's as simple as setting the [`backgroundSkin`](../api-reference/feathers/controls/Scroller.html#backgroundSkin) property.
@@ -270,7 +270,7 @@ The styling function might look like this:
 private function setItemRendererStyles(itemRenderer:DefaultListItemRenderer):void
 {
     var skin:ImageSkin = new ImageSkin( upTexture );
-    skin.setTextForState( ButtonState.DOWN, downTexture );
+    skin.setTextureForState( ButtonState.DOWN, downTexture );
     skin.scale9Grid = new Rectangle( 2, 2, 1, 6 );
     itemRenderer.defaultSkin = skin;
     itemRenderer.fontStyles = new TextFormat( "Helvetica", 20, 0xc3c3c3 );
@@ -301,7 +301,7 @@ list.itemRendererFactory = function():IListItemRenderer
 
     //set item renderer styles here, if not using a theme
     var skin:ImageSkin = new ImageSkin( upTexture );
-    skin.setTextForState( ButtonState.DOWN, downTexture );
+    skin.setTextureForState( ButtonState.DOWN, downTexture );
     skin.scale9Grid = new Rectangle( 2, 2, 1, 6 );
     itemRenderer.defaultSkin = skin;
     itemRenderer.fontStyles = new TextFormat( "Helvetica", 20, 0xc3c3c3 );

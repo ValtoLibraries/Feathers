@@ -103,6 +103,9 @@ package feathers.controls
 	 *   listening for the event.</td></tr>
 	 * </table>
 	 *
+	 * @see #selectedItem
+	 * @see #selectedIndex
+	 *
 	 * @eventType starling.events.Event.CHANGE
 	 */
 	[Event(name="change",type="starling.events.Event")]
@@ -649,6 +652,8 @@ package feathers.controls
 		 *
 		 * @default true
 		 *
+		 * @see #selectedItem
+		 * @see #selectedIndex
 		 * @see #allowMultipleSelection
 		 */
 		public function get isSelectable():Boolean
