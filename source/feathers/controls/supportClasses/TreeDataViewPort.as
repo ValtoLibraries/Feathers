@@ -582,7 +582,6 @@ package feathers.controls.supportClasses
 			var displayIndex:int = this.locationToDisplayIndex(groupIndex, itemIndex);
 			var newDisplayIndex:int = this._layout.calculateNavigationDestination(this._layoutItems, displayIndex, keyCode, this._layoutResult);
 			this.displayIndexToLocation(newDisplayIndex, result);
-			trace(displayIndex, newDisplayIndex, result);
 		}
 
 		public function getScrollPositionForIndex(groupIndex:int, itemIndex:int, result:Point = null):Point
@@ -671,7 +670,6 @@ package feathers.controls.supportClasses
 			}
 			if(dataInvalid || layoutInvalid || itemRendererInvalid)
 			{
-				trace("refresh layout typical item...");
 				this.refreshLayoutTypicalItem();
 			}
 			if(basicsInvalid)
@@ -776,27 +774,33 @@ package feathers.controls.supportClasses
 				if(this._dataProvider !== null)
 				{
 					typicalItemLocation = this._dataProvider.getItemLocation(typicalItem);
-					newTypicalItemIsInDataProvider = typicalItemLocation !== null;
+					newTypicalItemIsInDataProvider = typicalItemLocation !== null && typicalItemLocation.length > 0;
 				}
 			}
 			else
 			{
 				newTypicalItemIsInDataProvider = true;
-				if(this._dataProvider && this._dataProvider.getLengthAtLocation() > 0)
+				if(this._dataProvider !== null && this._dataProvider.getLengthAtLocation() > 0)
 				{
 					typicalItem = this._dataProvider.getItemAt(0);
-					typicalItemLocation = new <int>[];
+					typicalItemLocation = new <int>[0];
 				}
 			}
-			trace("typical item: " + typicalItem, newTypicalItemIsInDataProvider, typicalItemLocation);
 
 			if(typicalItem !== null)
 			{
 				var typicalItemRenderer:ITreeItemRenderer = ITreeItemRenderer(this._itemRendererMap[typicalItem]);
-				//at this point, the item may already have an item renderer.
-				//(this doesn't necessarily mean that the current typical
-				//item was the typical item last time this function was
-				//called)
+				if(typicalItemRenderer !== null)
+				{
+					//at this point, the item already has an item renderer.
+					//(this doesn't necessarily mean that the current typical
+					//item was the typical item last time this function was
+					//called)
+					
+					//the location may have changed if items were added,
+					//removed or reordered in the data provider
+					typicalItemRenderer.location = typicalItemLocation;
+				}
 				if(typicalItemRenderer === null && this._typicalItemRenderer !== null)
 				{
 					//the typical item has changed, and doesn't have an item
@@ -855,7 +859,7 @@ package feathers.controls.supportClasses
 					//if we still don't have a typical item renderer, we need to
 					//create a new one.
 					typicalItemRenderer = this.createItemRenderer(typicalItem, typicalItemLocation, 0, false, !newTypicalItemIsInDataProvider);
-					if(!this._typicalItemIsInDataProvider && this._typicalItemRenderer)
+					if(!this._typicalItemIsInDataProvider && this._typicalItemRenderer !== null)
 					{
 						//get rid of the old typical item renderer if it isn't
 						//needed anymore.  since it was not in the data
@@ -954,7 +958,11 @@ package feathers.controls.supportClasses
 		{
 			var virtualLayout:IVirtualLayout = this._layout as IVirtualLayout;
 			var useVirtualLayout:Boolean = virtualLayout !== null && virtualLayout.useVirtualLayout;
-			var itemCount:int = this._dataProvider.getLengthAtLocation(location);
+			var itemCount:int = 0;
+			if(this._dataProvider !== null)
+			{
+				itemCount = this._dataProvider.getLengthAtLocation(location);
+			}
 			for(var i:int = 0; i < itemCount; i++)
 			{
 				location[location.length] = i;
@@ -1152,7 +1160,7 @@ package feathers.controls.supportClasses
 			storage.activeItemRenderers = temp;
 			if(storage.activeItemRenderers.length > 0)
 			{
-				throw new IllegalOperationError("ListDataViewPort: active renderers should be empty.");
+				throw new IllegalOperationError("TreeDataViewPort: active renderers should be empty.");
 			}
 			if(itemRendererTypeIsInvalid)
 			{
