@@ -21,7 +21,7 @@ package feathers.controls
 	import feathers.skins.IStyleProvider;
 	import feathers.controls.renderers.ITreeItemRenderer;
 	import feathers.controls.renderers.DefaultTreeItemRenderer;
-	import __AS3__.vec.Vector;
+	import feathers.data.ArrayCollection;
 
 	/**
 	 * A style name to add to all item renderers in this tree. Typically
@@ -176,8 +176,104 @@ package feathers.controls
 	[Event(name="rendererRemove",type="starling.events.Event")]
 
 	/**
+	 * Dispatched when a branch is opened.
+	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>The data for the branch that was opened</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
+	 *
+	 * @eventType starling.events.Event.OPEN
+	 *
+	 * @see #event:close starling.events.Event.CLOSE
+	 * @see #isBranchOpen()
+	 * @see #toggleBranch()
+	 */
+	[Event(name="open",type="starling.events.Event")]
+
+	/**
+	 * Dispatched when a branch is closed.
+	 *
+	 * <p>The properties of the event object have the following values:</p>
+	 * <table class="innertable">
+	 * <tr><th>Property</th><th>Value</th></tr>
+	 * <tr><td><code>bubbles</code></td><td>false</td></tr>
+	 * <tr><td><code>currentTarget</code></td><td>The Object that defines the
+	 *   event listener that handles the event. For example, if you use
+	 *   <code>myButton.addEventListener()</code> to register an event listener,
+	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
+	 * <tr><td><code>data</code></td><td>The data for the branch that was closed</td></tr>
+	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
+	 *   it is not always the Object listening for the event. Use the
+	 *   <code>currentTarget</code> property to always access the Object
+	 *   listening for the event.</td></tr>
+	 * </table>
+	 *
+	 * @eventType starling.events.Event.CLOSE
+	 *
+	 * @see #event:open starling.events.Event.OPEN
+	 * @see #isBranchOpen()
+	 * @see #toggleBranch()
+	 */
+	[Event(name="close",type="starling.events.Event")]
+
+	/**
 	 * Displays a hierarchical tree of items. Supports scrolling, custom item
 	 * renderers, and custom layouts.
+	 *
+	 * <p>The following example creates a tree, gives it a data provider, and
+	 * tells the item renderer how to interpret the data:</p>
+	 *
+	 * <listing version="3.0">
+	 * var tree:Tree = new Tree();
+	 * 
+	 * tree.dataProvider = new ArrayHierarchicalCollection(
+	 * [
+	 *     {
+	 *         text: "Node 1",
+	 *         children:
+	 *         [
+	 *             {
+	 *                 text: "Node 1A",
+	 *                 children:
+	 *                 [
+	 *                     { text: "Node 1A-I" },
+	 *                     { text: "Node 1A-II" },
+	 *                 ]
+	 *             },
+	 *             { text: "Node 1B" },
+	 *         ]
+	 *     },
+	 *     { text: "Node 2" },
+	 *     {
+	 *         text: "Node 3",
+	 *         children:
+	 *         [
+	 *             { text: "Node 4A" },
+	 *             { text: "Node 4B" },
+	 *             { text: "Node 4C" },
+	 *         ]
+	 *     }
+	 * ]);
+	 * 
+	 * tree.itemRendererFactory = function():ITreeItemRenderer
+	 * {
+	 *     var itemRenderer:DefaultTreeItemRenderer = new DefaultTreeItemRenderer();
+	 *     itemRenderer.labelField = "text";
+	 *     return itemRenderer;
+	 * };
+	 * 
+	 * this.addChild( tree );</listing>
 	 *
 	 * @see ../../../help/tree.html How to use the Feathers Tree component
 	 * @see ../../../help/default-item-renderers.html How to use the Feathers default item renderer
@@ -242,15 +338,64 @@ package feathers.controls
 		 * <p>The following example passes in a data provider and tells the item
 		 * renderer how to interpret the data:</p>
 		 *
-		 * <listing version="3.0">
-		 * tree.dataProvider = new HierarchicalCollection(
+		 * <listing version="3.0"> 
+		 * tree.dataProvider = new ArrayHierarchicalCollection(
 		 * [
-		 * ]);</listing>
+		 *     {
+		 *         text: "Node 1",
+		 *         children:
+		 *         [
+		 *             {
+		 *                 text: "Node 1A",
+		 *                 children:
+		 *                 [
+		 *                     { text: "Node 1A-I" },
+		 *                     { text: "Node 1A-II" },
+		 *                 ]
+		 *             },
+		 *             { text: "Node 1B" },
+		 *         ]
+		 *     },
+		 *     { text: "Node 2" },
+		 *     {
+		 *         text: "Node 3",
+		 *         children:
+		 *         [
+		 *             { text: "Node 4A" },
+		 *             { text: "Node 4B" },
+		 *             { text: "Node 4C" },
+		 *         ]
+		 *     }
+		 * ]);
+		 * 
+		 * tree.itemRendererFactory = function():ITreeItemRenderer
+		 * {
+		 *     var itemRenderer:DefaultTreeItemRenderer = new DefaultTreeItemRenderer();
+		 *     itemRenderer.labelField = "text";
+		 *     return itemRenderer;
+		 * };</listing>
+		 *
+		 * <p><em>Warning:</em> A tree's data provider cannot contain duplicate
+		 * items. To display the same item in multiple item renderers, you must
+		 * create separate objects with the same properties. This limitation
+		 * exists because it significantly improves performance.</p>
+		 *
+		 * <p><em>Warning:</em> If the data provider contains display objects,
+		 * concrete textures, or anything that needs to be disposed, those
+		 * objects will not be automatically disposed when the list is disposed.
+		 * Similar to how <code>starling.display.Image</code> cannot
+		 * automatically dispose its texture because the texture may be used
+		 * by other display objects, a list cannot dispose its data provider
+		 * because the data provider may be used by other lists. See the
+		 * <code>dispose()</code> function on <code>IHierarchicalCollection</code> to
+		 * see how the data provider can be disposed properly.</p>
 		 *
 		 * @default null
 		 *
-		 * @see feathers.data.HierarchicalCollection
-		 * @see feathers.data.IHierarchicalCollectionDataDescriptor
+		 * @see feathers.data.IHierarchicalCollection#dispose()
+		 * @see feathers.data.ArrayHierarchicalCollection
+		 * @see feathers.data.VectorHierarchicalCollection
+		 * @see feathers.data.XMLListHierarchicalCollection
 		 */
 		public function get dataProvider():IHierarchicalCollection
 		{
@@ -451,13 +596,6 @@ package feathers.controls
 		 * <listing version="3.0">
 		 * tree.itemRendererType = CustomItemRendererClass;</listing>
 		 *
-		 * <p>The first item and last item in a group may optionally use
-		 * different item renderer types, if desired. Use the
-		 * <code>firstItemRendererType</code> and <code>lastItemRendererType</code>,
-		 * respectively. Additionally, if a group contains only one item, it may
-		 * also have a different type. Use the <code>singleItemRendererType</code>.
-		 * Finally, factories for each of these types may also be customized.</p>
-		 *
 		 * @default feathers.controls.renderers.DefaultTreeItemRenderer
 		 *
 		 * @see feathers.controls.renderers.ITreeItemRenderer
@@ -513,12 +651,6 @@ package feathers.controls
 		 *     return renderer;
 		 * };</listing>
 		 *
-		 * <p>The first item and last item in a group may optionally use
-		 * different item renderer factories, if desired. Use the
-		 * <code>firstItemRendererFactory</code> and <code>lastItemRendererFactory</code>,
-		 * respectively. Additionally, if a group contains only one item, it may
-		 * also have a different factory. Use the <code>singleItemRendererFactory</code>.</p>
-		 *
 		 * @default null
 		 *
 		 * @see feathers.controls.renderers.ITreeItemRenderer
@@ -561,7 +693,7 @@ package feathers.controls
 		 *
 		 * <pre>function(item:Object):String</pre>
 		 *
-		 * <pre>function(item:Object, groupIndex:int, itemIndex:int):String</pre>
+		 * <pre>function(item:Object, location:Vector.&lt;int&gt;):String</pre>
 		 *
 		 * <p>The following example provides a <code>factoryIDFunction</code>:</p>
 		 *
@@ -577,9 +709,9 @@ package feathers.controls
 		 * tree.setItemRendererFactoryWithID( "regular-item", regularItemFactory );
 		 * tree.setItemRendererFactoryWithID( "first-item", firstItemFactory );
 		 *
-		 * tree.factoryIDFunction = function( item:Object, groupIndex:int, itemIndex:int ):String
+		 * tree.factoryIDFunction = function( item:Object, location:Vector.&lt;int&gt; ):String
 		 * {
-		 *     if(index === 0)
+		 *     if(location.length === 1 &amp;&amp; location[0] === 0)
 		 *     {
 		 *         return "first-item";
 		 *     }
@@ -784,6 +916,63 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		protected var _openBranches:ArrayCollection = new ArrayCollection();
+
+		/**
+		 * Opens or closes a branch.
+		 *
+		 * @see #isBranchOpen()
+		 * @see #event:open starling.events.Event.OPEN
+		 * @see #event:close starling.events.Event.CLOSE
+		 */
+		public function toggleBranch(branch:Object, open:Boolean):void
+		{
+			if(this._dataProvider === null || !this._dataProvider.isBranch(branch))
+			{
+				throw new ArgumentError("toggleBranch() may not open an item that is not a branch.");
+			}
+			var index:int = this._openBranches.getItemIndex(branch);
+			if(open)
+			{
+				if(index !== -1)
+				{
+					//the branch is already open
+					return;
+				}
+				this._openBranches.addItem(branch);
+				this.dispatchEventWith(Event.OPEN, false, branch);
+			}
+			else //close
+			{
+				if(index === -1)
+				{
+					//the branch is already closed
+					return;
+				}
+				this._openBranches.removeItem(branch);
+				this.dispatchEventWith(Event.CLOSE, false, branch);
+			}
+		}
+
+		/**
+		 * Indicates if a branch from the data provider is open or closed.
+		 *
+		 * @see #toggleBranch()
+		 * @see #event:open starling.events.Event.OPEN
+		 * @see #event:close starling.events.Event.CLOSE
+		 */
+		public function isBranchOpen(branch:Object):Boolean
+		{
+			if(this._dataProvider === null || !this._dataProvider.isBranch(branch))
+			{
+				return false;
+			}
+			return this._openBranches.getItemIndex(branch) !== -1;
+		}
+
+		/**
+		 * @private
+		 */
 		override protected function initialize():void
 		{
 			var hasLayout:Boolean = this._layout !== null;
@@ -838,6 +1027,7 @@ package feathers.controls
 			this.dataViewPort.selectedItem = this._selectedItem;
 			this.dataViewPort.dataProvider = this._dataProvider;
 			this.dataViewPort.typicalItem = this._typicalItem;
+			this.dataViewPort.openBranches = this._openBranches;
 
 			this.dataViewPort.itemRendererType = this._itemRendererType;
 			this.dataViewPort.itemRendererFactory = this._itemRendererFactory;

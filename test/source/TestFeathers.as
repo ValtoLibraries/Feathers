@@ -4,6 +4,7 @@ package
 	import feathers.tests.AlertMeasurementTests;
 	import feathers.tests.AnchorLayoutTests;
 	import feathers.tests.ArrayCollectionTests;
+	import feathers.tests.ArrayHierarchicalCollectionTests;
 	import feathers.tests.BasicButtonInternalStateTests;
 	import feathers.tests.BasicButtonMeasurementTests;
 	import feathers.tests.BasicButtonTests;
@@ -130,10 +131,13 @@ package
 	import feathers.tests.TouchToStateTests;
 	import feathers.tests.TreeTests;
 	import feathers.tests.VectorCollectionTests;
+	import feathers.tests.VectorHierarchicalCollectionTests;
 	import feathers.tests.VerticalCenteredPopUpContentManagerTests;
 	import feathers.tests.VerticalLayoutTests;
 	import feathers.tests.VerticalSpinnerLayoutTests;
 	import feathers.tests.XMLListCollectionTests;
+	import feathers.tests.XMLListHierarchicalCollectionTests;
+	import feathers.tests.XMLListInsertAtTests;
 
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -296,6 +300,9 @@ package
 				VectorCollectionTests,
 				XMLListCollectionTests,
 				HierarchicalCollectionTests,
+				ArrayHierarchicalCollectionTests,
+				VectorHierarchicalCollectionTests,
+				XMLListHierarchicalCollectionTests,
 
 				//text renderers
 				BitmapFontTextRendererTests,
@@ -338,6 +345,7 @@ package
 				BottomDrawerPopUpContentManagerTests,
 				VerticalCenteredPopUpContentManagerTests,
 				CalloutPopUpContentManagerTests,
+				XMLListInsertAtTests,
 			]);
 		}
 

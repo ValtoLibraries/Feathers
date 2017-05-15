@@ -183,81 +183,91 @@ package feathers.data
 	[Event(name="updateAll",type="starling.events.Event")]
 
 	/**
-	 * Wraps a two-dimensional data source with a common API for use with UI
-	 * controls that support this type of data.
+	 * Wraps a <code>Vector</code> data source with a common API for use with
+	 * UI controls that support hierarchical data.
 	 *
-	 * @productversion Feathers 1.0.0
+	 * @productversion Feathers 3.3.0
 	 */
-	public class HierarchicalCollection extends EventDispatcher implements IHierarchicalCollection
+	public class VectorHierarchicalCollection extends EventDispatcher implements IHierarchicalCollection
 	{
 		/**
 		 * Constructor.
 		 */
-		public function HierarchicalCollection(data:Object = null)
+		public function VectorHierarchicalCollection(vectorData:Object = null)
 		{
-			if(!data)
+			if(vectorData === null)
 			{
-				//default to an array if no data is provided
-				data = [];
+				vectorData = new <*>[];
 			}
-			this.data = data;
+			this._vectorData = vectorData as Vector.<*>;
 		}
 
 		/**
 		 * @private
 		 */
-		protected var _data:Object;
+		protected var _vectorData:Vector.<*> = null;
 
 		/**
-		 * The data source for this collection. May be any type of data, but a
-		 * <code>dataDescriptor</code> needs to be provided to translate from
-		 * the data source's APIs to something that can be understood by
-		 * hierarchical collection.
+		 * The <code>Vector</code> data source for this collection. 
+		 * 
+		 * <p>Note: Ideally, this property would be typed as something other
+		 * than <code>Object</code>, but there is no type that will accept all
+		 * <code>Vector</code> objects without requiring a cast first.</p>
+		 */
+		public function get vectorData():Object
+		{
+			return this._vectorData;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set vectorData(value:Object):void
+		{
+			if(this._vectorData === value)
+			{
+				return;
+			}
+			this._vectorData = value as Vector.<*>;
+			this.dispatchEventWith(CollectionEventType.RESET);
+			this.dispatchEventWith(Event.CHANGE);
+		}
+
+		[Deprecated(replacement="vectorData",since="3.3.0")]
+		/**
+		 * @private
 		 */
 		public function get data():Object
 		{
-			return _data;
+			return this.vectorData;
 		}
 
+		[Deprecated(replacement="vectorData",since="3.3.0")]
 		/**
 		 * @private
 		 */
 		public function set data(value:Object):void
 		{
-			if(this._data == value)
-			{
-				return;
-			}
-			this._data = value;
-			this.dispatchEventWith(CollectionEventType.RESET);
-			this.dispatchEventWith(Event.CHANGE);
+			this.vectorData = value as Vector.<*>;
 		}
 
 		/**
 		 * @private
 		 */
-		protected var _dataDescriptor:IHierarchicalCollectionDataDescriptor = new ArrayChildrenHierarchicalCollectionDataDescriptor();
+		protected var _childrenField:String = "children";
 
 		/**
-		 * Describes the underlying data source by translating APIs.
+		 * The field of a branch object used to access its children. The
+		 * field's type must be <code>Vector</code> to be treated as a branch.
 		 */
-		public function get dataDescriptor():IHierarchicalCollectionDataDescriptor
+		public function get childrenField():String
 		{
-			return this._dataDescriptor;
+			return this._childrenField;
 		}
 
-		/**
-		 * @private
-		 */
-		public function set dataDescriptor(value:IHierarchicalCollectionDataDescriptor):void
+		public function set childrenField(value:String):void
 		{
-			if(this._dataDescriptor == value)
-			{
-				return;
-			}
-			this._dataDescriptor = value;
-			this.dispatchEventWith(CollectionEventType.RESET);
-			this.dispatchEventWith(Event.CHANGE);
+			this._childrenField = value;
 		}
 
 		/**
@@ -265,26 +275,54 @@ package feathers.data
 		 */
 		public function isBranch(node:Object):Boolean
 		{
-			return this._dataDescriptor.isBranch(node);
+			return node.hasOwnProperty(this._childrenField) && node[this._childrenField] is Vector.<*>;
 		}
 
 		/**
 		 * @copy feathers.data.IHierarchicalCollection#getLength()
 		 *
 		 * @see #getLengthAtLocation()
+		 *
+		 * @throws RangeError Branch not found at specified location
 		 */
 		public function getLength(...rest:Array):int
 		{
-			rest.insertAt(0, this._data);
-			return this._dataDescriptor.getLength.apply(null, rest);
+			var branch:Vector.<*> = this._vectorData;
+			var indexCount:int = rest.length;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				var index:int = rest[i] as int;
+				branch = branch[index][this._childrenField] as Vector.<*>;
+				if(branch === null)
+				{
+					throw new RangeError("Branch not found at location: " + rest);
+				}
+			}
+			return branch.length;
 		}
 
 		/**
 		 * @copy feathers.data.IHierarchicalCollection#getLengthAtLocation()
+		 *
+		 * @throws RangeError Branch not found at specified location
 		 */
 		public function getLengthAtLocation(location:Vector.<int> = null):int
 		{
-			return this._dataDescriptor.getLengthAtLocation(this._data, location);
+			var branch:Vector.<*> = this._vectorData;
+			if(location !== null)
+			{
+				var indexCount:int = location.length;
+				for(var i:int = 0; i < indexCount; i++)
+				{
+					var index:int = location[i];
+					branch = branch[index][this._childrenField] as Vector.<*>;
+					if(branch === null)
+					{
+						throw new RangeError("Branch not found at location: " + location);
+					}
+				}
+			}
+			return branch.length;
 		}
 
 		/**
@@ -316,8 +354,19 @@ package feathers.data
 		public function getItemAt(index:int, ...rest:Array):Object
 		{
 			rest.insertAt(0, index);
-			rest.insertAt(0, this._data);
-			return this._dataDescriptor.getItemAt.apply(null, rest);
+			var branch:Vector.<*> = this._vectorData;
+			var indexCount:int = rest.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				index = rest[i] as int;
+				branch = branch[index][this._childrenField] as Vector.<*>;
+				if(branch === null)
+				{
+					return null;
+				}
+			}
+			var lastIndex:int = rest[indexCount] as int;
+			return branch[lastIndex];
 		}
 
 		/**
@@ -325,7 +374,19 @@ package feathers.data
 		 */
 		public function getItemAtLocation(location:Vector.<int>):Object
 		{
-			return this._dataDescriptor.getItemAtLocation(this._data, location);
+			var branch:Vector.<*> = this._vectorData;
+			var indexCount:int = location.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				var index:int = location[i];
+				branch = branch[index][this._childrenField] as Vector.<*>;
+				if(branch === null)
+				{
+					return null;
+				}
+			}
+			index = location[indexCount];
+			return branch[index];
 		}
 
 		/**
@@ -333,72 +394,126 @@ package feathers.data
 		 */
 		public function getItemLocation(item:Object, result:Vector.<int> = null):Vector.<int>
 		{
-			return this._dataDescriptor.getItemLocation(this._data, item, result);
+			if(!result)
+			{
+				result = new <int>[];
+			}
+			else
+			{
+				result.length = 0;
+			}
+			var branch:Vector.<*> = this._vectorData;
+			this.findItemInBranch(branch, item, result);
+			return result;
 		}
 
 		/**
 		 * @copy feathers.data.IHierarchicalCollection#addItemAt()
 		 *
 		 * @see #addItemAtLocation()
+		 *
+		 * @throws RangeError Branch not found at specified location
 		 */
 		public function addItemAt(item:Object, index:int, ...rest:Array):void
 		{
 			rest.insertAt(0, index);
-			rest.insertAt(0, item);
-			rest.insertAt(0, this._data);
-			this._dataDescriptor.addItemAt.apply(null, rest);
+			var branch:Vector.<*> = this._vectorData;
+			var indexCount:int = rest.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				index = rest[i] as int;
+				branch = branch[index][this._childrenField] as Vector.<*>;
+				if(branch === null)
+				{
+					throw new RangeError("Branch not found at location: " + rest);
+				}
+			}
+			index = rest[indexCount] as int;
+			branch.insertAt(index, item);
 			this.dispatchEventWith(Event.CHANGE);
-			rest.shift();
-			rest.shift();
 			this.dispatchEventWith(CollectionEventType.ADD_ITEM, false, rest);
 		}
 
 		/**
 		 * @copy feathers.data.IHierarchicalCollection#addItemAtLocation()
+		 *
+		 * @throws RangeError Branch not found at specified location
 		 */
 		public function addItemAtLocation(item:Object, location:Vector.<int>):void
 		{
-			this._dataDescriptor.addItemAtLocation(this._data, item, location);
-			this.dispatchEventWith(Event.CHANGE);
-			var result:Array = [];
-			var locationCount:int = location.length;
-			for(var i:int = 0; i < locationCount; i++)
+			var eventIndices:Array = [];
+			var branch:Vector.<*> = this._vectorData;
+			var indexCount:int = location.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
 			{
-				result[i] = location[i];
+				var index:int = location[i];
+				branch = branch[index][this._childrenField] as Vector.<*>;
+				if(branch === null)
+				{
+					throw new RangeError("Branch not found at location: " + location);
+				}
+				eventIndices[i] = index;
 			}
-			this.dispatchEventWith(CollectionEventType.ADD_ITEM, false, result);
+			index = location[indexCount];
+			eventIndices[indexCount] = index;
+			branch.insertAt(index, item);
+			this.dispatchEventWith(Event.CHANGE);
+			this.dispatchEventWith(CollectionEventType.ADD_ITEM, false, eventIndices);
 		}
 
 		/**
 		 * @copy feathers.data.IHierarchicalCollection#removeItemAt()
 		 * 
 		 * @see #removeItemAtLocation()
+		 *
+		 * @throws RangeError Branch not found at specified location
 		 */
 		public function removeItemAt(index:int, ...rest:Array):Object
 		{
 			rest.insertAt(0, index);
-			rest.insertAt(0, this._data);
-			var item:Object = this._dataDescriptor.removeItemAt.apply(null, rest);
+			var branch:Vector.<*> = this._vectorData;
+			var indexCount:int = rest.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				index = rest[i] as int;
+				branch = branch[index][this._childrenField] as Vector.<*>;
+				if(branch === null)
+				{
+					throw new RangeError("Branch not found at location: " + rest);
+				}
+			}
+			index = rest[indexCount] as int;
+			var item:Object = branch.removeAt(index);
 			this.dispatchEventWith(Event.CHANGE);
-			rest.shift();
 			this.dispatchEventWith(CollectionEventType.REMOVE_ITEM, false, rest);
 			return item;
 		}
 
 		/**
 		 * @copy feathers.data.IHierarchicalCollection#removeItemAtLocation()
+		 *
+		 * @throws RangeError Branch not found at specified location
 		 */
 		public function removeItemAtLocation(location:Vector.<int>):Object
 		{
-			var item:Object = this._dataDescriptor.removeItemAtLocation(this._data, location);
-			var result:Array = [];
-			var locationCount:int = location.length;
-			for(var i:int = 0; i < locationCount; i++)
+			var eventIndices:Array = [];
+			var branch:Vector.<*> = this._vectorData;
+			var indexCount:int = location.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
 			{
-				result[i] = location[i];
+				var index:int = location[i];
+				branch = branch[index][this._childrenField] as Vector.<*>;
+				if(branch === null)
+				{
+					throw new RangeError("Branch not found at location: " + location);
+				}
+				eventIndices[i] = index;
 			}
+			index = location[indexCount];
+			eventIndices[indexCount] = index;
+			var item:Object = branch.removeAt(index);
 			this.dispatchEventWith(Event.CHANGE);
-			this.dispatchEventWith(CollectionEventType.REMOVE_ITEM, false, result);
+			this.dispatchEventWith(CollectionEventType.REMOVE_ITEM, false, eventIndices);
 			return item;
 		}
 
@@ -410,7 +525,7 @@ package feathers.data
 			var location:Vector.<int> = this.getItemLocation(item);
 			if(location !== null)
 			{
-				this.removeItemAtLocation(location);
+				this.removeItemAtLocation(location)
 			}
 		}
 
@@ -423,7 +538,7 @@ package feathers.data
 			{
 				return;
 			}
-			this._dataDescriptor.removeAll(this._data);
+			this._vectorData.length = 0;
 			this.dispatchEventWith(CollectionEventType.REMOVE_ALL);
 			this.dispatchEventWith(Event.CHANGE);
 		}
@@ -432,33 +547,54 @@ package feathers.data
 		 * @copy feathers.data.IHierarchicalCollection#setItemAt()
 		 *
 		 * @see #setItemAtLocation()
+		 *
+		 * @throws RangeError Branch not found at specified location
 		 */
 		public function setItemAt(item:Object, index:int, ...rest:Array):void
 		{
 			rest.insertAt(0, index);
-			rest.insertAt(0, item);
-			rest.insertAt(0, this._data);
-			this._dataDescriptor.setItemAt.apply(null, rest);
-			rest.shift();
-			rest.shift();
+			var branch:Vector.<*> = this._vectorData;
+			var indexCount:int = rest.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				index = rest[i] as int;
+				branch = branch[index][this._childrenField] as Vector.<*>;
+				if(branch === null)
+				{
+					throw new RangeError("Branch not found at location: " + rest);
+				}
+			}
+			index = rest[indexCount] as int;
+			branch[index] = item;
 			this.dispatchEventWith(CollectionEventType.REPLACE_ITEM, false, rest);
 			this.dispatchEventWith(Event.CHANGE);
 		}
 
 		/**
 		 * @copy feathers.data.IHierarchicalCollection#setItemAtLocation()
+		 *
+		 * @throws RangeError Branch not found at specified location
 		 */
 		public function setItemAtLocation(item:Object, location:Vector.<int>):void
 		{
-			this._dataDescriptor.setItemAtLocation(data, item, location);
-			this.dispatchEventWith(Event.CHANGE);
-			var result:Array = [];
-			var locationCount:int = location.length;
-			for(var i:int = 0; i < locationCount; i++)
+			var eventIndices:Array = [];
+			var branch:Vector.<*> = this._vectorData;
+			var indexCount:int = location.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
 			{
-				result[i] = location[i];
+				var index:int = location[i];
+				branch = branch[index][this._childrenField] as Vector.<*>;
+				if(branch === null)
+				{
+					throw new RangeError("Branch not found at location: " + location);
+				}
+				eventIndices[i] = index;
 			}
-			this.dispatchEventWith(CollectionEventType.REPLACE_ITEM, false, result);
+			index = location[indexCount];
+			eventIndices[indexCount] = index;
+			branch[index] = item;
+			this.dispatchEventWith(Event.CHANGE);
+			this.dispatchEventWith(CollectionEventType.REPLACE_ITEM, false, eventIndices);
 		}
 
 		/**
@@ -467,15 +603,15 @@ package feathers.data
 		 * @see http://doc.starling-framework.org/core/starling/display/DisplayObject.html#dispose() starling.display.DisplayObject.dispose()
 		 * @see http://doc.starling-framework.org/core/starling/textures/Texture.html#dispose() starling.textures.Texture.dispose()
 		 */
-		public function dispose(disposeGroup:Function, disposeItem:Function):void
+		public function dispose(disposeBranch:Function, disposeItem:Function):void
 		{
-			var groupCount:int = this.getLength();
+			var groupCount:int = this._vectorData.length;
 			var path:Array = [];
 			for(var i:int = 0; i < groupCount; i++)
 			{
-				var group:Object = this.getItemAt(i);
+				var group:Object = this._vectorData[i];
 				path[0] = i;
-				this.disposeGroupInternal(group, path, disposeGroup, disposeItem);
+				this.disposeGroupInternal(group, path, disposeBranch, disposeItem);
 				path.length = 0;
 			}
 		}
@@ -483,11 +619,11 @@ package feathers.data
 		/**
 		 * @private
 		 */
-		protected function disposeGroupInternal(group:Object, path:Array, disposeGroup:Function, disposeItem:Function):void
+		protected function disposeGroupInternal(group:Object, path:Array, disposeBranch:Function, disposeItem:Function):void
 		{
-			if(disposeGroup != null)
+			if(disposeBranch !== null)
 			{
-				disposeGroup(group);
+				disposeBranch(group);
 			}
 
 			var itemCount:int = this.getLength.apply(this, path);
@@ -497,14 +633,44 @@ package feathers.data
 				var item:Object = this.getItemAt.apply(this, path);
 				if(this.isBranch(item))
 				{
-					this.disposeGroupInternal(item, path, disposeGroup, disposeItem);
+					this.disposeGroupInternal(item, path, disposeBranch, disposeItem);
 				}
-				else if(disposeItem != null)
+				else if(disposeItem !== null)
 				{
 					disposeItem(item);
 				}
 				path.length--;
 			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function findItemInBranch(branch:Vector.<*>, item:Object, result:Vector.<int>):Boolean
+		{
+			var insertIndex:int = result.length;
+			var branchLength:int = branch.length;
+			for(var i:int = 0; i < branchLength; i++)
+			{
+				var branchItem:Object = branch[i];
+				if(branchItem === item)
+				{
+					result[insertIndex] = i;
+					return true;
+				}
+				if(this.isBranch(branchItem))
+				{
+					result[insertIndex] = i;
+					var children:Vector.<*> = branchItem[this._childrenField] as Vector.<*>;
+					var isFound:Boolean = this.findItemInBranch(children, item, result);
+					if(isFound)
+					{
+						return true;
+					}
+					result.pop();
+				}
+			}
+			return false;
 		}
 	}
 }

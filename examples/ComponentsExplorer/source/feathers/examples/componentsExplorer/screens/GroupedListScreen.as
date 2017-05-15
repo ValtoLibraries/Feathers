@@ -6,7 +6,7 @@ package feathers.examples.componentsExplorer.screens
 	import feathers.controls.PanelScreen;
 	import feathers.controls.renderers.DefaultGroupedListItemRenderer;
 	import feathers.controls.renderers.IGroupedListItemRenderer;
-	import feathers.data.HierarchicalCollection;
+	import feathers.data.ArrayHierarchicalCollection;
 	import feathers.events.FeathersEventType;
 	import feathers.examples.componentsExplorer.data.GroupedListSettings;
 	import feathers.layout.AnchorLayout;
@@ -109,11 +109,17 @@ package feathers.examples.componentsExplorer.screens
 			{
 				this._list.styleNameList.add(GroupedList.ALTERNATE_STYLE_NAME_INSET_GROUPED_LIST);
 			}
-			this._list.dataProvider = new HierarchicalCollection(groups);
+			this._list.dataProvider = new ArrayHierarchicalCollection(groups);
 			this._list.typicalItem = { text: "Item 1000" };
 			this._list.isSelectable = this.settings.isSelectable;
 			this._list.hasElasticEdges = this.settings.hasElasticEdges;
+			//optimization: since this list fills the entire screen, there's no
+			//need for clipping. clipping should not be disabled if there's a
+			//chance that item renderers could be visible if they appear outside
+			//the list's bounds
 			this._list.clipContent = false;
+			//optimization: when the background is covered by all item
+			//renderers, don't render it
 			this._list.autoHideBackground = true;
 			this._list.itemRendererFactory = function():IGroupedListItemRenderer
 			{

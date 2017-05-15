@@ -1,20 +1,20 @@
 package feathers.tests
 {
-	import feathers.data.HierarchicalCollection;
+	import feathers.data.ArrayHierarchicalCollection;
 	import feathers.events.CollectionEventType;
 
 	import org.flexunit.Assert;
 
 	import starling.events.Event;
 
-	public class HierarchicalCollectionTests
+	public class ArrayHierarchicalCollectionTests
 	{
-		private var _collection:HierarchicalCollection;
+		private var _collection:ArrayHierarchicalCollection;
 
 		[Before]
 		public function prepare():void
 		{
-			this._collection = new HierarchicalCollection(
+			this._collection = new ArrayHierarchicalCollection(
 			[
 				{
 					label: "1",
@@ -60,7 +60,7 @@ package feathers.tests
 		public function testGetLength():void
 		{
 			var length:int = this._collection.getLength();
-			Assert.assertStrictlyEquals("HierarchicalCollection: getLengthAtLocation() returned incorrect length",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getLengthAtLocation() returned incorrect length",
 				4, length);
 		}
 
@@ -68,7 +68,7 @@ package feathers.tests
 		public function testGetLengthNested():void
 		{
 			var length:int = this._collection.getLength(3);
-			Assert.assertStrictlyEquals("HierarchicalCollection: getLengthAtLocation() returned incorrect length",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getLengthAtLocation() returned incorrect length",
 				2, length);
 		}
 
@@ -76,7 +76,7 @@ package feathers.tests
 		public function testGetLengthAtLocationWithNull():void
 		{
 			var length:int = this._collection.getLengthAtLocation();
-			Assert.assertStrictlyEquals("HierarchicalCollection: getLengthAtLocation() returned incorrect length",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getLengthAtLocation() returned incorrect length",
 				4, length);
 		}
 
@@ -84,16 +84,16 @@ package feathers.tests
 		public function testGetItemAt():void
 		{
 			var item:Object = this._collection.getItemAt(1);
-			Assert.assertStrictlyEquals("HierarchicalCollection: getItemAt() returned incorrect item",
-				this._collection.data[1], item);
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getItemAt() returned incorrect item",
+				this._collection.arrayData[1], item);
 		}
 
 		[Test]
 		public function testGetItemAtNested():void
 		{
 			var item:Object = this._collection.getItemAt(0, 1);
-			Assert.assertStrictlyEquals("HierarchicalCollection: getItemAt() returned incorrect item",
-				this._collection.data[0].children[1], item);
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getItemAt() returned incorrect item",
+				this._collection.arrayData[0].children[1], item);
 		}
 
 		[Test]
@@ -101,8 +101,8 @@ package feathers.tests
 		{
 			var indices:Vector.<int> = new <int>[1];
 			var item:Object = this._collection.getItemAtLocation(indices);
-			Assert.assertStrictlyEquals("HierarchicalCollection: getItemAtLocation() returned incorrect item",
-				this._collection.data[1], item);
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getItemAtLocation() returned incorrect item",
+				this._collection.arrayData[1], item);
 		}
 
 		[Test]
@@ -110,8 +110,8 @@ package feathers.tests
 		{
 			var indices:Vector.<int> = new <int>[0, 1];
 			var item:Object = this._collection.getItemAtLocation(indices);
-			Assert.assertStrictlyEquals("HierarchicalCollection: getItemAtLocation() returned incorrect item",
-				this._collection.data[0].children[1], item);
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getItemAtLocation() returned incorrect item",
+				this._collection.arrayData[0].children[1], item);
 		}
 
 		[Test]
@@ -133,10 +133,10 @@ package feathers.tests
 				hasReset = true;
 			});
 			this._collection.removeAll();
-			Assert.assertTrue("HierarchicalCollection: Event.CHANGE was not dispatched after removeAll()", hasChanged);
-			Assert.assertFalse("HierarchicalCollection: CollectionEventType.RESET was incorrectly dispatched after removeAll()", hasReset);
-			Assert.assertTrue("HierarchicalCollection: CollectionEventType.REMOVE_ALL was not dispatched after removeAll()", hasRemovedAll);
-			Assert.assertStrictlyEquals("HierarchicalCollection: the getLength() value was not changed to 0 after removeAll()",
+			Assert.assertTrue("ArrayHierarchicalCollection: Event.CHANGE was not dispatched after removeAll()", hasChanged);
+			Assert.assertFalse("ArrayHierarchicalCollection: CollectionEventType.RESET was incorrectly dispatched after removeAll()", hasReset);
+			Assert.assertTrue("ArrayHierarchicalCollection: CollectionEventType.REMOVE_ALL was not dispatched after removeAll()", hasRemovedAll);
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: the getLength() value was not changed to 0 after removeAll()",
 				0, this._collection.getLength());
 		}
 
@@ -159,17 +159,17 @@ package feathers.tests
 				indicesFromEvent = indices;
 			});
 			this._collection.removeItemAtLocation(indicesToRemove);
-			Assert.assertTrue("HierarchicalCollection: Event.CHANGE was not dispatched", hasChanged);
-			Assert.assertTrue("HierarchicalCollection: CollectionEventType.REMOVE_ITEM was not dispatched", hasRemovedItem);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The getLength() value was not changed",
+			Assert.assertTrue("ArrayHierarchicalCollection: Event.CHANGE was not dispatched", hasChanged);
+			Assert.assertTrue("ArrayHierarchicalCollection: CollectionEventType.REMOVE_ITEM was not dispatched", hasRemovedItem);
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The getLength() value was not changed",
 				originalLength - 1, this._collection.getLength());
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not removed",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not removed",
 				0, this._collection.getItemLocation(itemToRemove).length);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (length)",
 				1, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (value)",
 				indicesToRemove[0], indicesFromEvent[0]);
 		}
 
@@ -192,19 +192,19 @@ package feathers.tests
 				indicesFromEvent = indices;
 			});
 			this._collection.removeItemAtLocation(indicesToRemove);
-			Assert.assertTrue("HierarchicalCollection: Event.CHANGE was not dispatched", hasChanged);
-			Assert.assertTrue("HierarchicalCollection: CollectionEventType.REMOVE_ITEM was not dispatched", hasRemovedItem);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The getLength() value was not changed",
+			Assert.assertTrue("ArrayHierarchicalCollection: Event.CHANGE was not dispatched", hasChanged);
+			Assert.assertTrue("ArrayHierarchicalCollection: CollectionEventType.REMOVE_ITEM was not dispatched", hasRemovedItem);
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The getLength() value was not changed",
 				originalParentLength - 1, this._collection.getLength(indicesToRemove[0]));
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not removed",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not removed",
 				0, this._collection.getItemLocation(itemToRemove).length);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (length)",
 				2, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (value)",
 				indicesToRemove[0], indicesFromEvent[0]);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (value)",
 				indicesToRemove[1], indicesFromEvent[1]);
 		}
 
@@ -227,17 +227,17 @@ package feathers.tests
 				indicesFromEvent = indices;
 			});
 			this._collection.removeItemAt(expectedIndex);
-			Assert.assertTrue("HierarchicalCollection: Event.CHANGE was not dispatched", hasChanged);
-			Assert.assertTrue("HierarchicalCollection: CollectionEventType.REMOVE_ITEM was not dispatched", hasRemovedItem);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The getLength() value was not changed",
+			Assert.assertTrue("ArrayHierarchicalCollection: Event.CHANGE was not dispatched", hasChanged);
+			Assert.assertTrue("ArrayHierarchicalCollection: CollectionEventType.REMOVE_ITEM was not dispatched", hasRemovedItem);
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The getLength() value was not changed",
 				originalLength - 1, this._collection.getLength());
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not removed",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not removed",
 				0, this._collection.getItemLocation(itemToRemove).length);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (length)",
 				1, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (value)",
 				1, indicesFromEvent[0]);
 		}
 
@@ -260,17 +260,17 @@ package feathers.tests
 				indicesFromEvent = indices;
 			});
 			this._collection.removeItem(itemToRemove);
-			Assert.assertTrue("HierarchicalCollection: Event.CHANGE was not dispatched", hasChanged);
-			Assert.assertTrue("HierarchicalCollection: CollectionEventType.REMOVE_ITEM was not dispatched", hasRemovedItem);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The getLength() value was not changed",
+			Assert.assertTrue("ArrayHierarchicalCollection: Event.CHANGE was not dispatched", hasChanged);
+			Assert.assertTrue("ArrayHierarchicalCollection: CollectionEventType.REMOVE_ITEM was not dispatched", hasRemovedItem);
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The getLength() value was not changed",
 				originalLength - 1, this._collection.getLength());
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not removed",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not removed",
 				0, this._collection.getItemLocation(itemToRemove).length);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (length)",
 				1, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REMOVE_ITEM event data was not the correct location (value)",
 				1, indicesFromEvent[0]);
 		}
 
@@ -297,15 +297,15 @@ package feathers.tests
 			Assert.assertTrue("CollectionEventType.ADD_ITEM was not dispatched", hasAddedItem);
 			Assert.assertStrictlyEquals("The getLength() value was not changed",
 				originalLength + 1, this._collection.getLength());
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not added",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not added",
 				1, this._collection.getItemLocation(itemToAdd).length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not added at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not added at the correct index",
 				location[0], this._collection.getItemLocation(itemToAdd)[0]);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (length)",
 				1, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
 				location[0], indicesFromEvent[0]);
 		}
 
@@ -332,19 +332,19 @@ package feathers.tests
 			Assert.assertTrue("CollectionEventType.ADD_ITEM was not dispatched", hasAddedItem);
 			Assert.assertStrictlyEquals("The getLength() value was not changed",
 				originalParentLength + 1, this._collection.getLength(location[0]));
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not added",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not added",
 				2, this._collection.getItemLocation(itemToAdd).length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not added at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not added at the correct index",
 				location[0], this._collection.getItemLocation(itemToAdd)[0]);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not added at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not added at the correct index",
 				location[1], this._collection.getItemLocation(itemToAdd)[1]);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (length)",
 				2, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
 				location[0], indicesFromEvent[0]);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
 				location[1], indicesFromEvent[1]);
 		}
 
@@ -371,15 +371,15 @@ package feathers.tests
 			Assert.assertTrue("CollectionEventType.ADD_ITEM was not dispatched", hasAddedItem);
 			Assert.assertStrictlyEquals("The getLength() value was not changed",
 				originalLength + 1, this._collection.getLength());
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not added",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not added",
 				1, this._collection.getItemLocation(itemToAdd).length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not added at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not added at the correct index",
 				expectedIndex, this._collection.getItemLocation(itemToAdd)[0]);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (length)",
 				1, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
 				1, indicesFromEvent[0]);
 		}
 
@@ -405,19 +405,19 @@ package feathers.tests
 			Assert.assertTrue("CollectionEventType.ADD_ITEM was not dispatched", hasAddedItem);
 			Assert.assertStrictlyEquals("The getLength() value was not changed",
 				originalParentLength + 1, this._collection.getLength(0));
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not added",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not added",
 				2, this._collection.getItemLocation(itemToAdd).length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not added at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not added at the correct index",
 				0, this._collection.getItemLocation(itemToAdd)[0]);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not added at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not added at the correct index",
 				1, this._collection.getItemLocation(itemToAdd)[1]);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (length)",
 				2, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
 				0, indicesFromEvent[0]);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.ADD_ITEM event data was not the correct location (value)",
 				1, indicesFromEvent[1]);
 		}
 
@@ -444,15 +444,15 @@ package feathers.tests
 			Assert.assertTrue("CollectionEventType.REPLACE_ITEM was not dispatched", hasReplacedItem);
 			Assert.assertStrictlyEquals("The length property was incorrectly changed",
 				originalLength, this._collection.getLength());
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not replaced",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not replaced",
 				1, this._collection.getItemLocation(itemToAdd).length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not replaced at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not replaced at the correct index",
 				expectedIndex, this._collection.getItemLocation(itemToAdd)[0]);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (length)",
 				1, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
 				1, indicesFromEvent[0]);
 		}
 
@@ -478,19 +478,19 @@ package feathers.tests
 			Assert.assertTrue("CollectionEventType.REPLACE_ITEM was not dispatched", hasReplacedItem);
 			Assert.assertStrictlyEquals("The length property was incorrectly changed",
 				originalParentLength, this._collection.getLength(0));
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not replaced",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not replaced",
 				2, this._collection.getItemLocation(itemToAdd).length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not replaced at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not replaced at the correct index",
 				0, this._collection.getItemLocation(itemToAdd)[0]);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not replaced at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not replaced at the correct index",
 				1, this._collection.getItemLocation(itemToAdd)[1]);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (length)",
 				2, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
 				0, indicesFromEvent[0]);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
 				1, indicesFromEvent[1]);
 		}
 
@@ -517,15 +517,15 @@ package feathers.tests
 			Assert.assertTrue("CollectionEventType.REPLACE_ITEM was not dispatched", hasReplacedItem);
 			Assert.assertStrictlyEquals("The length property was incorrectly changed",
 				originalLength, this._collection.getLength());
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not replaced",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not replaced",
 				1, this._collection.getItemLocation(itemToAdd).length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not replaced at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not replaced at the correct index",
 				location[0], this._collection.getItemLocation(itemToAdd)[0]);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (length)",
 				1, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
 				location[0], indicesFromEvent[0]);
 		}
 
@@ -552,19 +552,19 @@ package feathers.tests
 			Assert.assertTrue("CollectionEventType.REPLACE_ITEM was not dispatched", hasReplacedItem);
 			Assert.assertStrictlyEquals("The length property was incorrectly changed",
 				originalParentLength, this._collection.getLength(location[0]));
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not replaced",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not replaced",
 				2, this._collection.getItemLocation(itemToAdd).length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not replaced at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not replaced at the correct index",
 				location[0], this._collection.getItemLocation(itemToAdd)[0]);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The item was not replaced at the correct index",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The item was not replaced at the correct index",
 				location[1], this._collection.getItemLocation(itemToAdd)[1]);
-			Assert.failNull("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (null)",
+			Assert.failNull("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (null)",
 				indicesFromEvent);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (length)",
 				2, indicesFromEvent.length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
 				location[0], indicesFromEvent[0]);
-			Assert.assertStrictlyEquals("HierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: The CollectionEventType.REPLACE_ITEM event data was not the correct location (value)",
 				location[1], indicesFromEvent[1]);
 		}
 
@@ -573,9 +573,9 @@ package feathers.tests
 		{
 			var expectedIndex:int = 1;
 			var item:Object = this._collection.getItemAt(expectedIndex);
-			Assert.assertStrictlyEquals("HierarchicalCollection: getItemLocation() returned the incorrect location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getItemLocation() returned the incorrect location (length)",
 				1, this._collection.getItemLocation(item).length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: getItemLocation() returned the incorrect location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getItemLocation() returned the incorrect location (value)",
 				expectedIndex, this._collection.getItemLocation(item)[0]);
 		}
 
@@ -584,11 +584,11 @@ package feathers.tests
 		{
 			var location:Vector.<int> = new <int>[0, 1];
 			var item:Object = this._collection.getItemAtLocation(location);
-			Assert.assertStrictlyEquals("HierarchicalCollection: getItemLocation() returned the incorrect location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getItemLocation() returned the incorrect location (length)",
 				location.length, this._collection.getItemLocation(item).length);
-			Assert.assertStrictlyEquals("HierarchicalCollection: getItemLocation() returned the incorrect location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getItemLocation() returned the incorrect location (value)",
 				location[0], this._collection.getItemLocation(item)[0]);
-			Assert.assertStrictlyEquals("HierarchicalCollection: getItemLocation() returned the incorrect location (value)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getItemLocation() returned the incorrect location (value)",
 				location[1], this._collection.getItemLocation(item)[1]);
 		}
 
@@ -596,7 +596,7 @@ package feathers.tests
 		public function testGetItemLocationWithItemNotInCollection():void
 		{
 			var item:Object = {};
-			Assert.assertStrictlyEquals("HierarchicalCollection: getItemLocation() returned the incorrect location (length)",
+			Assert.assertStrictlyEquals("ArrayHierarchicalCollection: getItemLocation() returned the incorrect location (length)",
 				0, this._collection.getItemLocation(item).length);
 		}
 	}

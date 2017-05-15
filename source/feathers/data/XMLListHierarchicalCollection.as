@@ -8,6 +8,7 @@ accordance with the terms of the accompanying license agreement.
 package feathers.data
 {
 	import feathers.events.CollectionEventType;
+	import feathers.utils.xml.xmlListInsertAt;
 
 	import starling.events.Event;
 	import starling.events.EventDispatcher;
@@ -183,81 +184,72 @@ package feathers.data
 	[Event(name="updateAll",type="starling.events.Event")]
 
 	/**
-	 * Wraps a two-dimensional data source with a common API for use with UI
-	 * controls that support this type of data.
+	 * Wraps an XML data source with a common API for use with UI controls that
+	 * support hierarchical data.
 	 *
-	 * @productversion Feathers 1.0.0
+	 * @productversion Feathers 3.3.0
 	 */
-	public class HierarchicalCollection extends EventDispatcher implements IHierarchicalCollection
+	public class XMLListHierarchicalCollection extends EventDispatcher implements IHierarchicalCollection
 	{
 		/**
 		 * Constructor.
 		 */
-		public function HierarchicalCollection(data:Object = null)
+		public function XMLListHierarchicalCollection(xmlListData:XMLList = null)
 		{
-			if(!data)
+			if(xmlListData === null)
 			{
-				//default to an array if no data is provided
-				data = [];
+				xmlListData = new XMLList();
 			}
-			this.data = data;
+			this._xmlListData = xmlListData;
 		}
 
 		/**
 		 * @private
 		 */
-		protected var _data:Object;
+		protected var _xmlListData:XMLList = null;
 
 		/**
-		 * The data source for this collection. May be any type of data, but a
-		 * <code>dataDescriptor</code> needs to be provided to translate from
-		 * the data source's APIs to something that can be understood by
-		 * hierarchical collection.
+		 * The <code>XMLList</code> data source for this collection. 
+		 */
+		public function get xmlListData():XMLList
+		{
+			return this._xmlListData;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set xmlListData(value:XMLList):void
+		{
+			if(this._xmlListData === value)
+			{
+				return;
+			}
+			this._xmlListData = value;
+			this.dispatchEventWith(CollectionEventType.RESET);
+			this.dispatchEventWith(Event.CHANGE);
+		}
+
+		[Deprecated(replacement="xmlListData",since="3.3.0")]
+		/**
+		 * @private
 		 */
 		public function get data():Object
 		{
-			return _data;
+			return this.xmlListData;
 		}
 
+		[Deprecated(replacement="xmlListData",since="3.3.0")]
 		/**
 		 * @private
 		 */
 		public function set data(value:Object):void
 		{
-			if(this._data == value)
+			if(!(value is XMLList))
 			{
-				return;
+				throw new ArgumentError("XMLListHierarchicalCollection data must be of type XMLList.");
 			}
-			this._data = value;
-			this.dispatchEventWith(CollectionEventType.RESET);
-			this.dispatchEventWith(Event.CHANGE);
-		}
-
-		/**
-		 * @private
-		 */
-		protected var _dataDescriptor:IHierarchicalCollectionDataDescriptor = new ArrayChildrenHierarchicalCollectionDataDescriptor();
-
-		/**
-		 * Describes the underlying data source by translating APIs.
-		 */
-		public function get dataDescriptor():IHierarchicalCollectionDataDescriptor
-		{
-			return this._dataDescriptor;
-		}
-
-		/**
-		 * @private
-		 */
-		public function set dataDescriptor(value:IHierarchicalCollectionDataDescriptor):void
-		{
-			if(this._dataDescriptor == value)
-			{
-				return;
-			}
-			this._dataDescriptor = value;
-			this.dispatchEventWith(CollectionEventType.RESET);
-			this.dispatchEventWith(Event.CHANGE);
+			this.xmlListData = value as XMLList;
 		}
 
 		/**
@@ -265,7 +257,12 @@ package feathers.data
 		 */
 		public function isBranch(node:Object):Boolean
 		{
-			return this._dataDescriptor.isBranch(node);
+			var xml:XML = node as XML;
+			if(xml === null)
+			{
+				return false;
+			}
+			return xml.elements().length() > 0;
 		}
 
 		/**
@@ -275,8 +272,15 @@ package feathers.data
 		 */
 		public function getLength(...rest:Array):int
 		{
-			rest.insertAt(0, this._data);
-			return this._dataDescriptor.getLength.apply(null, rest);
+			var branch:XMLList = this._xmlListData;
+			var indexCount:int = rest.length;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				var index:int = rest[i] as int;
+				branch = branch[index].elements();
+			}
+
+			return branch.length();
 		}
 
 		/**
@@ -284,7 +288,17 @@ package feathers.data
 		 */
 		public function getLengthAtLocation(location:Vector.<int> = null):int
 		{
-			return this._dataDescriptor.getLengthAtLocation(this._data, location);
+			var branch:XMLList = this._xmlListData;
+			if(location !== null)
+			{
+				var indexCount:int = location.length;
+				for(var i:int = 0; i < indexCount; i++)
+				{
+					var index:int = location[i];
+					branch = branch[index].elements();
+				}
+			}
+			return branch.length();
 		}
 
 		/**
@@ -316,8 +330,15 @@ package feathers.data
 		public function getItemAt(index:int, ...rest:Array):Object
 		{
 			rest.insertAt(0, index);
-			rest.insertAt(0, this._data);
-			return this._dataDescriptor.getItemAt.apply(null, rest);
+			var branch:XMLList = this._xmlListData;
+			var indexCount:int = rest.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				index = rest[i] as int;
+				branch = branch[index].elements();
+			}
+			index = rest[indexCount] as int;
+			return branch[index] as XML;
 		}
 
 		/**
@@ -325,7 +346,15 @@ package feathers.data
 		 */
 		public function getItemAtLocation(location:Vector.<int>):Object
 		{
-			return this._dataDescriptor.getItemAtLocation(this._data, location);
+			var branch:XMLList = this._xmlListData;
+			var indexCount:int = location.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				var index:int = location[i];
+				branch = branch[index].elements();
+			}
+			index = location[indexCount];
+			return branch[index] as XML;
 		}
 
 		/**
@@ -333,7 +362,21 @@ package feathers.data
 		 */
 		public function getItemLocation(item:Object, result:Vector.<int> = null):Vector.<int>
 		{
-			return this._dataDescriptor.getItemLocation(this._data, item, result);
+			if(result === null)
+			{
+				result = new <int>[];
+			}
+			else
+			{
+				result.length = 0;
+			}
+			var xmlItem:XML = item as XML;
+			if(xmlItem === null)
+			{
+				return result;
+			}
+			this.findItemInBranch(this._xmlListData, xmlItem, result);
+			return result;
 		}
 
 		/**
@@ -344,12 +387,26 @@ package feathers.data
 		public function addItemAt(item:Object, index:int, ...rest:Array):void
 		{
 			rest.insertAt(0, index);
-			rest.insertAt(0, item);
-			rest.insertAt(0, this._data);
-			this._dataDescriptor.addItemAt.apply(null, rest);
+			var parentOfBranch:XML = null;
+			var branch:XMLList = this._xmlListData;
+			var indexCount:int = rest.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				index = rest[i] as int;
+				parentOfBranch = branch[index] as XML;
+				branch = parentOfBranch.elements();
+			}
+			index = rest[indexCount] as int;
+			branch = xmlListInsertAt(branch, index, item as XML);
+			if(parentOfBranch === null)
+			{
+				this._xmlListData = branch;
+			}
+			else
+			{
+				parentOfBranch.setChildren(branch);
+			}
 			this.dispatchEventWith(Event.CHANGE);
-			rest.shift();
-			rest.shift();
 			this.dispatchEventWith(CollectionEventType.ADD_ITEM, false, rest);
 		}
 
@@ -358,15 +415,30 @@ package feathers.data
 		 */
 		public function addItemAtLocation(item:Object, location:Vector.<int>):void
 		{
-			this._dataDescriptor.addItemAtLocation(this._data, item, location);
-			this.dispatchEventWith(Event.CHANGE);
-			var result:Array = [];
-			var locationCount:int = location.length;
-			for(var i:int = 0; i < locationCount; i++)
+			var eventIndices:Array = [];
+			var parentOfBranch:XML = null;
+			var branch:XMLList = this._xmlListData;
+			var indexCount:int = location.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
 			{
-				result[i] = location[i];
+				var index:int = location[i];
+				parentOfBranch = branch[index] as XML;
+				branch = parentOfBranch.elements();
+				eventIndices[i] = index;
 			}
-			this.dispatchEventWith(CollectionEventType.ADD_ITEM, false, result);
+			index = location[indexCount];
+			eventIndices[indexCount] = index;
+			branch = xmlListInsertAt(branch, index, item as XML);
+			if(parentOfBranch === null)
+			{
+				this._xmlListData = branch;
+			}
+			else
+			{
+				parentOfBranch.setChildren(branch);
+			}
+			this.dispatchEventWith(Event.CHANGE);
+			this.dispatchEventWith(CollectionEventType.ADD_ITEM, false, eventIndices);
 		}
 
 		/**
@@ -377,10 +449,17 @@ package feathers.data
 		public function removeItemAt(index:int, ...rest:Array):Object
 		{
 			rest.insertAt(0, index);
-			rest.insertAt(0, this._data);
-			var item:Object = this._dataDescriptor.removeItemAt.apply(null, rest);
+			var branch:XMLList = this._xmlListData;
+			var indexCount:int = rest.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				index = rest[i] as int;
+				branch = branch[index].elements();
+			}
+			index = rest[indexCount] as int;
+			var item:XML = branch[index] as XML;
+			delete branch[index];
 			this.dispatchEventWith(Event.CHANGE);
-			rest.shift();
 			this.dispatchEventWith(CollectionEventType.REMOVE_ITEM, false, rest);
 			return item;
 		}
@@ -390,15 +469,21 @@ package feathers.data
 		 */
 		public function removeItemAtLocation(location:Vector.<int>):Object
 		{
-			var item:Object = this._dataDescriptor.removeItemAtLocation(this._data, location);
-			var result:Array = [];
-			var locationCount:int = location.length;
-			for(var i:int = 0; i < locationCount; i++)
+			var eventIndices:Array = [];
+			var branch:XMLList = this._xmlListData;
+			var indexCount:int = location.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
 			{
-				result[i] = location[i];
+				var index:int = location[i];
+				branch = branch[index].elements();
+				eventIndices[i] = index;
 			}
+			index = location[indexCount];
+			eventIndices[indexCount] = index;
+			var item:XML = branch[index] as XML;
+			delete branch[index];
 			this.dispatchEventWith(Event.CHANGE);
-			this.dispatchEventWith(CollectionEventType.REMOVE_ITEM, false, result);
+			this.dispatchEventWith(CollectionEventType.REMOVE_ITEM, false, eventIndices);
 			return item;
 		}
 
@@ -423,7 +508,7 @@ package feathers.data
 			{
 				return;
 			}
-			this._dataDescriptor.removeAll(this._data);
+			this._xmlListData = new XMLList();
 			this.dispatchEventWith(CollectionEventType.REMOVE_ALL);
 			this.dispatchEventWith(Event.CHANGE);
 		}
@@ -436,11 +521,15 @@ package feathers.data
 		public function setItemAt(item:Object, index:int, ...rest:Array):void
 		{
 			rest.insertAt(0, index);
-			rest.insertAt(0, item);
-			rest.insertAt(0, this._data);
-			this._dataDescriptor.setItemAt.apply(null, rest);
-			rest.shift();
-			rest.shift();
+			var branch:XMLList = this._xmlListData;
+			var indexCount:int = rest.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
+			{
+				index = rest[i] as int;
+				branch = branch[index].elements();
+			}
+			index = rest[indexCount] as int;
+			branch[index] = item;
 			this.dispatchEventWith(CollectionEventType.REPLACE_ITEM, false, rest);
 			this.dispatchEventWith(Event.CHANGE);
 		}
@@ -450,15 +539,20 @@ package feathers.data
 		 */
 		public function setItemAtLocation(item:Object, location:Vector.<int>):void
 		{
-			this._dataDescriptor.setItemAtLocation(data, item, location);
-			this.dispatchEventWith(Event.CHANGE);
-			var result:Array = [];
-			var locationCount:int = location.length;
-			for(var i:int = 0; i < locationCount; i++)
+			var eventIndices:Array = [];
+			var branch:XMLList = this._xmlListData;
+			var indexCount:int = location.length - 1;
+			for(var i:int = 0; i < indexCount; i++)
 			{
-				result[i] = location[i];
+				var index:int = location[i];
+				branch = branch[index].elements();
+				eventIndices[i] = index;
 			}
-			this.dispatchEventWith(CollectionEventType.REPLACE_ITEM, false, result);
+			index = location[indexCount];
+			eventIndices[indexCount] = index;
+			branch[index] = item;
+			this.dispatchEventWith(Event.CHANGE);
+			this.dispatchEventWith(CollectionEventType.REPLACE_ITEM, false, eventIndices);
 		}
 
 		/**
@@ -505,6 +599,37 @@ package feathers.data
 				}
 				path.length--;
 			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function findItemInBranch(branch:XMLList, item:XML, result:Vector.<int>):Boolean
+		{
+			var branchLength:int = branch.length();
+			var insertIndex:int = result.length;
+			for(var i:int = 0; i < branchLength; i++)
+			{
+				var branchItem:XML = branch[i] as XML;
+				//don't use strict equality here or it may not be possible to
+				//find items that were added
+				if(branchItem == item)
+				{
+					result[insertIndex] = i;
+					return true;
+				}
+				if(this.isBranch(branchItem))
+				{
+					result[insertIndex] = i;
+					var isFound:Boolean = this.findItemInBranch(branchItem.elements(), item, result);
+					if(isFound)
+					{
+						return true;
+					}
+					result.pop();
+				}
+			}
+			return false;
 		}
 	}
 }
