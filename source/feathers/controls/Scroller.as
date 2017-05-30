@@ -43,6 +43,7 @@ package feathers.controls
 	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
 	import starling.utils.MathUtil;
+	import starling.utils.Pool;
 
 	/**
 	 * If <code>true</code>, the background's <code>visible</code> property
@@ -776,11 +777,6 @@ package feathers.controls
 	 */
 	public class Scroller extends FeathersControl implements IFocusDisplayObject
 	{
-		/**
-		 * @private
-		 */
-		private static const HELPER_POINT:Point = new Point();
-
 		/**
 		 * @private
 		 */
@@ -4244,8 +4240,9 @@ package feathers.controls
 				}
 				else
 				{
-					HELPER_POINT.setTo(horizontalScrollPosition - this._horizontalScrollPosition, verticalScrollPosition - this._verticalScrollPosition);
-					animationDuration = this.calculateDynamicThrowDuration(HELPER_POINT.length * this._logDecelerationRate + MINIMUM_VELOCITY);
+					var point:Point = Pool.getPoint(horizontalScrollPosition - this._horizontalScrollPosition, verticalScrollPosition - this._verticalScrollPosition);
+					animationDuration = this.calculateDynamicThrowDuration(point.length * this._logDecelerationRate + MINIMUM_VELOCITY);
+					Pool.putPoint(point);
 				}
 			}
 			//cancel any pending scroll to a different page. we can have only
@@ -7480,13 +7477,19 @@ package feathers.controls
 				return;
 			}
 			var starling:Starling = this.stage !== null ? this.stage.starling : Starling.current;
-			var horizontalInchesMoved:Number = Math.abs(this._currentTouchX - this._startTouchX) / (DeviceCapabilities.dpi / starling.contentScaleFactor);
-			var verticalInchesMoved:Number = Math.abs(this._currentTouchY - this._startTouchY) / (DeviceCapabilities.dpi / starling.contentScaleFactor);
-			if((this._horizontalScrollPolicy == ScrollPolicy.ON ||
-				(this._horizontalScrollPolicy == ScrollPolicy.AUTO && this._minHorizontalScrollPosition != this._maxHorizontalScrollPosition) ||
-				(this._leftPullView !== null && (this._currentTouchX > this._startTouchX || this._horizontalScrollPosition < this._minHorizontalScrollPosition)) ||
-				(this._rightPullView !== null && (this._currentTouchX < this._startTouchX || this._horizontalScrollPosition > this._minHorizontalScrollPosition))) &&
-				!this._isDraggingHorizontally && horizontalInchesMoved >= this._minimumDragDistance)
+			var horizontalInchesMoved:Number = (this._currentTouchX - this._startTouchX) / (DeviceCapabilities.dpi / starling.contentScaleFactor);
+			var verticalInchesMoved:Number = (this._currentTouchY - this._startTouchY) / (DeviceCapabilities.dpi / starling.contentScaleFactor);
+			if(!this._isDraggingHorizontally &&
+				(
+					this._horizontalScrollPolicy === ScrollPolicy.ON ||
+					(this._horizontalScrollPolicy === ScrollPolicy.AUTO && this._minHorizontalScrollPosition !== this._maxHorizontalScrollPosition) ||
+					(this._leftPullView !== null && (this._currentTouchX > this._startTouchX || this._horizontalScrollPosition < this._minHorizontalScrollPosition)) ||
+					(this._rightPullView !== null && (this._currentTouchX < this._startTouchX || this._horizontalScrollPosition > this._minHorizontalScrollPosition))
+				) &&
+				(
+					((horizontalInchesMoved <= -this._minimumDragDistance) && (this._hasElasticEdges || this._horizontalScrollPosition < this._maxHorizontalScrollPosition)) ||
+					((horizontalInchesMoved >= this._minimumDragDistance) && (this._hasElasticEdges || this._horizontalScrollPosition > this._minHorizontalScrollPosition))
+				))
 			{
 				if(this.horizontalScrollBar)
 				{
@@ -7506,11 +7509,17 @@ package feathers.controls
 					this.startScroll();
 				}
 			}
-			if((this._verticalScrollPolicy == ScrollPolicy.ON ||
-				(this._verticalScrollPolicy == ScrollPolicy.AUTO && this._minVerticalScrollPosition != this._maxVerticalScrollPosition) ||
-				(this._topPullView !== null && (this._currentTouchY > this._startTouchY || this._verticalScrollPosition < this._minVerticalScrollPosition)) ||
-				(this._bottomPullView !== null && (this._currentTouchY < this._startTouchY || this._verticalScrollPosition > this._minVerticalScrollPosition))) &&
-				!this._isDraggingVertically && verticalInchesMoved >= this._minimumDragDistance)
+			if(!this._isDraggingVertically &&
+				(
+					this._verticalScrollPolicy == ScrollPolicy.ON ||
+					(this._verticalScrollPolicy == ScrollPolicy.AUTO && this._minVerticalScrollPosition != this._maxVerticalScrollPosition) ||
+					(this._topPullView !== null && (this._currentTouchY > this._startTouchY || this._verticalScrollPosition < this._minVerticalScrollPosition)) ||
+					(this._bottomPullView !== null && (this._currentTouchY < this._startTouchY || this._verticalScrollPosition > this._minVerticalScrollPosition))
+				) &&
+				(
+					((verticalInchesMoved <= -this._minimumDragDistance) && (this._hasElasticEdges || this._verticalScrollPosition < this._maxVerticalScrollPosition)) ||
+					((verticalInchesMoved >= this._minimumDragDistance) && (this._hasElasticEdges || this._verticalScrollPosition > this._minVerticalScrollPosition))
+				))
 			{
 				if(this.verticalScrollBar)
 				{
@@ -7811,9 +7820,10 @@ package feathers.controls
 				return;
 			}
 
-			touch.getLocation(this, HELPER_POINT);
-			var touchX:Number = HELPER_POINT.x;
-			var touchY:Number = HELPER_POINT.y;
+			var touchPosition:Point = touch.getLocation(this, Pool.getPoint());
+			var touchX:Number = touchPosition.x;
+			var touchY:Number = touchPosition.y;
+			Pool.putPoint(touchPosition);
 			if(touchX < this._leftViewPortOffset || touchY < this._topViewPortOffset ||
 				touchX >= this.actualWidth - this._rightViewPortOffset ||
 				touchY >= this.actualHeight - this._bottomViewPortOffset)
@@ -7906,9 +7916,10 @@ package feathers.controls
 
 			if(touch.phase === TouchPhase.MOVED)
 			{
-				touch.getLocation(this, HELPER_POINT);
-				this._currentTouchX = HELPER_POINT.x;
-				this._currentTouchY = HELPER_POINT.y;
+				var touchPosition:Point = touch.getLocation(this, Pool.getPoint());
+				this._currentTouchX = touchPosition.x;
+				this._currentTouchY = touchPosition.y;
+				Pool.putPoint(touchPosition);
 				this.checkForDrag();
 				//we don't call saveVelocity() on TouchPhase.MOVED because the
 				//time interval may be very short, which could lead to
@@ -8006,41 +8017,47 @@ package feathers.controls
 					return;
 				}
 
-				if(!isFinishingHorizontally && this._isDraggingHorizontally)
+				if(!isFinishingHorizontally)
 				{
-					//take the average for more accuracy
-					var sum:Number = this._velocityX * CURRENT_VELOCITY_WEIGHT;
-					var velocityCount:int = this._previousVelocityX.length;
-					var totalWeight:Number = CURRENT_VELOCITY_WEIGHT;
-					for(var i:int = 0; i < velocityCount; i++)
+					if(this._isDraggingHorizontally)
 					{
-						var weight:Number = VELOCITY_WEIGHTS[i];
-						sum += this._previousVelocityX.shift() * weight;
-						totalWeight += weight;
+						//take the average for more accuracy
+						var sum:Number = this._velocityX * CURRENT_VELOCITY_WEIGHT;
+						var velocityCount:int = this._previousVelocityX.length;
+						var totalWeight:Number = CURRENT_VELOCITY_WEIGHT;
+						for(var i:int = 0; i < velocityCount; i++)
+						{
+							var weight:Number = VELOCITY_WEIGHTS[i];
+							sum += this._previousVelocityX.shift() * weight;
+							totalWeight += weight;
+						}
+						this.throwHorizontally(sum / totalWeight);
 					}
-					this.throwHorizontally(sum / totalWeight);
-				}
-				else
-				{
-					this.hideHorizontalScrollBar();
+					else
+					{
+						this.hideHorizontalScrollBar();
+					}
 				}
 
-				if(!isFinishingVertically && this._isDraggingVertically)
+				if(!isFinishingVertically)
 				{
-					sum = this._velocityY * CURRENT_VELOCITY_WEIGHT;
-					velocityCount = this._previousVelocityY.length;
-					totalWeight = CURRENT_VELOCITY_WEIGHT;
-					for(i = 0; i < velocityCount; i++)
+					if(this._isDraggingVertically)
 					{
-						weight = VELOCITY_WEIGHTS[i];
-						sum += this._previousVelocityY.shift() * weight;
-						totalWeight += weight;
+						sum = this._velocityY * CURRENT_VELOCITY_WEIGHT;
+						velocityCount = this._previousVelocityY.length;
+						totalWeight = CURRENT_VELOCITY_WEIGHT;
+						for(i = 0; i < velocityCount; i++)
+						{
+							weight = VELOCITY_WEIGHTS[i];
+							sum += this._previousVelocityY.shift() * weight;
+							totalWeight += weight;
+						}
+						this.throwVertically(sum / totalWeight);
 					}
-					this.throwVertically(sum / totalWeight);
-				}
-				else
-				{
-					this.hideVerticalScrollBar();
+					else
+					{
+						this.hideVerticalScrollBar();
+					}
 				}
 			}
 		}
@@ -8091,13 +8108,20 @@ package feathers.controls
 			}
 			var starlingViewPort:Rectangle = starling.viewPort;
 			var scaleFactor:Number = nativeScaleFactor / starling.contentScaleFactor;
-			HELPER_POINT.x = (event.stageX - starlingViewPort.x) * scaleFactor;
-			HELPER_POINT.y = (event.stageY - starlingViewPort.y) * scaleFactor;
-			if(this.contains(this.stage.hitTest(HELPER_POINT)))
+			var point:Point = Pool.getPoint(
+				(event.stageX - starlingViewPort.x) * scaleFactor,
+				(event.stageY - starlingViewPort.y) * scaleFactor);
+			var isContained:Boolean = this.contains(this.stage.hitTest(point));
+			if(!isContained)
 			{
-				this.globalToLocal(HELPER_POINT, HELPER_POINT);
-				var localMouseX:Number = HELPER_POINT.x;
-				var localMouseY:Number = HELPER_POINT.y;
+				Pool.putPoint(point);
+			}
+			else
+			{
+				this.globalToLocal(point, point);
+				var localMouseX:Number = point.x;
+				var localMouseY:Number = point.y;
+				Pool.putPoint(point);
 				if(localMouseX < this._leftViewPortOffset || localMouseY < this._topViewPortOffset ||
 					localMouseX >= this.actualWidth - this._rightViewPortOffset ||
 					localMouseY >= this.actualHeight - this._bottomViewPortOffset)
@@ -8179,8 +8203,9 @@ package feathers.controls
 				}
 
 				this._horizontalScrollBarTouchPointID = -1;
-				touch.getLocation(displayHorizontalScrollBar, HELPER_POINT);
-				var isInBounds:Boolean = this.horizontalScrollBar.hitTest(HELPER_POINT) !== null;
+				var touchPosition:Point = touch.getLocation(displayHorizontalScrollBar, Pool.getPoint());
+				var isInBounds:Boolean = this.horizontalScrollBar.hitTest(touchPosition) !== null;
+				Pool.putPoint(touchPosition);
 				if(!isInBounds)
 				{
 					this.hideHorizontalScrollBar();
@@ -8231,8 +8256,9 @@ package feathers.controls
 				}
 
 				this._verticalScrollBarTouchPointID = -1;
-				touch.getLocation(displayVerticalScrollBar, HELPER_POINT);
-				var isInBounds:Boolean = this.verticalScrollBar.hitTest(HELPER_POINT) !== null;
+				var touchPosition:Point = touch.getLocation(displayVerticalScrollBar, Pool.getPoint());
+				var isInBounds:Boolean = this.verticalScrollBar.hitTest(touchPosition) !== null;
+				Pool.putPoint(touchPosition);
 				if(!isInBounds)
 				{
 					this.hideVerticalScrollBar();
