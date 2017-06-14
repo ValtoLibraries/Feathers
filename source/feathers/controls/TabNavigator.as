@@ -9,9 +9,7 @@ package feathers.controls
 {
 	import feathers.controls.supportClasses.BaseScreenNavigator;
 	import feathers.core.IFeathersControl;
-	import feathers.data.ArrayCollection;
 	import feathers.data.IListCollection;
-	import feathers.data.ListCollection;
 	import feathers.data.VectorCollection;
 	import feathers.events.ExclusiveTouch;
 	import feathers.events.FeathersEventType;
@@ -395,6 +393,8 @@ package feathers.controls
 		 */
 		protected var tabBarStyleName:String = DEFAULT_CHILD_STYLE_NAME_TAB_BAR;
 
+		//this would be a VectorCollection with a Vector.<String>, but the ASC1
+		//compiler doesn't like it!
 		/**
 		 * @private
 		 */

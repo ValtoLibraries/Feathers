@@ -22,16 +22,134 @@ package feathers.controls.renderers
 	import feathers.core.IStateObserver;
 
 	/**
+	 * The icon used to indicate if the tree item is a branch.
+	 *
+	 * <p>The following example gives the item renderer a branch icon:</p>
+	 *
+	 * <listing version="3.0">
+	 * itemRenderer.branchIcon = new Image( texture );</listing>
+	 *
+	 * @default null
+	 *
+	 * @see #style:branchOpenIcon
+	 * @see #style:branchClosedIcon
+	 */
+	[Style(name="branchIcon",type="starling.display.DisplayObject")]
+
+	/**
+	 * The icon used to indicate if the tree item is an open branch. If
+	 * <code>null</code>, the <code>branchIcon</code> will be used instead.
+	 *
+	 * <p>The following example gives the item renderer a branch open icon:</p>
+	 *
+	 * <listing version="3.0">
+	 * itemRenderer.branchOpenIcon = new Image( texture );</listing>
+	 *
+	 * @default null
+	 *
+	 * @see #style:branchClosedIcon
+	 */
+	[Style(name="branchOpenIcon",type="starling.display.DisplayObject")]
+
+	/**
+	 * The icon used to indicate if the tree item is a closed branch. If
+	 * <code>null</code>, the <code>branchIcon</code> will be used instead.
+	 *
+	 * <p>The following example gives the item renderer a branch closed icon:</p>
+	 *
+	 * <listing version="3.0">
+	 * itemRenderer.branchClosedIcon = new Image( texture );</listing>
+	 *
+	 * @default null
+	 *
+	 * @see #style:branchOpenIcon
+	 */
+	[Style(name="branchClosedIcon",type="starling.display.DisplayObject")]
+
+	/**
+	 * The space, in pixels, between the disclosure icon and left edge of the
+	 * other children in the item renderer. If the value is <code>NaN</code>,
+	 * the value of the <code>gap</code> property will be used instead.
+	 *
+	 * <p>In the following example, the disclosure gap is set to 20 pixels:</p>
+	 *
+	 * <listing version="3.0">
+	 * itemRenderer.disclosureGap = 20;</listing>
+	 *
+	 * @default NaN
+	 *
+	 * @see #style:gap
+	 */
+	[Style(name="disclosureGap",type="Number")]
+
+	/**
+	 * The icon used to indicate if the tree item is open or closed.
+	 *
+	 * <p>The following example gives the item renderer a disclosure icon:</p>
+	 *
+	 * <listing version="3.0">
+	 * itemRenderer.disclosureIcon = new Image( texture );</listing>
+	 *
+	 * @default null
+	 *
+	 * @see #style:disclosureOpenIcon
+	 * @see #style:disclosureClosedIcon
+	 */
+	[Style(name="disclosureIcon",type="starling.display.DisplayObject")]
+
+	/**
+	 * The icon used to indicate if the tree item is open. If
+	 * <code>null</code>, the <code>disclosureIcon</code> will be used instead.
+	 *
+	 * <p>The following example gives the item renderer a disclosure open icon:</p>
+	 *
+	 * <listing version="3.0">
+	 * itemRenderer.disclosureOpenIcon = new Image( texture );</listing>
+	 *
+	 * @default null
+	 *
+	 * @see #style:disclosureClosedIcon
+	 */
+	[Style(name="disclosureOpenIcon",type="starling.display.DisplayObject")]
+
+	/**
+	 * The icon used to indicate if the tree item is closed. If
+	 * <code>null</code>, the <code>disclosureIcon</code> will be used instead.
+	 *
+	 * <p>The following example gives the item renderer a disclosure closed icon:</p>
+	 *
+	 * <listing version="3.0">
+	 * itemRenderer.disclosureClosedIcon = new Image( texture );</listing>
+	 *
+	 * @default null
+	 *
+	 * @see #style:disclosureOpenIcon
+	 */
+	[Style(name="disclosureClosedIcon",type="starling.display.DisplayObject")]
+
+	/**
 	 * The size, in pixels, of the indentation when an item is a child of a branch.
 	 *
 	 * <p>In the following example, the indentation is set to 15 pixels:</p>
 	 *
 	 * <listing version="3.0">
-	 * tree.indentation = 15;</listing>
+	 * itemRenderer.indentation = 15;</listing>
 	 *
 	 * @default 10
 	 */
 	[Style(name="indentation",type="Number")]
+
+	/**
+	 * The icon used to indicate if the tree item is a leaf.
+	 *
+	 * <p>The following example gives the item renderer a leaf icon:</p>
+	 *
+	 * <listing version="3.0">
+	 * itemRenderer.leafIcon = new Image( texture );</listing>
+	 *
+	 * @default null
+	 */
+	[Style(name="leafIcon",type="starling.display.DisplayObject")]
 
 	/**
 	 * The default item renderer for Tree control. Supports up to three optional
@@ -110,7 +228,7 @@ package feathers.controls.renderers
 		protected var _disclosureIcon:DisplayObject = null;
 
 		/**
-		 * 
+		 * @private
 		 */
 		public function get disclosureIcon():DisplayObject
 		{
@@ -144,7 +262,7 @@ package feathers.controls.renderers
 		protected var _disclosureOpenIcon:DisplayObject = null;
 
 		/**
-		 * 
+		 * @private
 		 */
 		public function get disclosureOpenIcon():DisplayObject
 		{
@@ -178,7 +296,7 @@ package feathers.controls.renderers
 		protected var _disclosureClosedIcon:DisplayObject = null;
 
 		/**
-		 * 
+		 * @private
 		 */
 		public function get disclosureClosedIcon():DisplayObject
 		{
@@ -217,7 +335,7 @@ package feathers.controls.renderers
 		protected var _branchIcon:DisplayObject = null;
 
 		/**
-		 * 
+		 * @private
 		 */
 		public function get branchIcon():DisplayObject
 		{
@@ -251,7 +369,7 @@ package feathers.controls.renderers
 		protected var _branchOpenIcon:DisplayObject = null;
 
 		/**
-		 * 
+		 * @private
 		 */
 		public function get branchOpenIcon():DisplayObject
 		{
@@ -285,7 +403,7 @@ package feathers.controls.renderers
 		protected var _branchClosedIcon:DisplayObject = null;
 
 		/**
-		 * 
+		 * @private
 		 */
 		public function get branchClosedIcon():DisplayObject
 		{
@@ -319,7 +437,7 @@ package feathers.controls.renderers
 		protected var _leafIcon:DisplayObject = null;
 
 		/**
-		 * 
+		 * @private
 		 */
 		public function get leafIcon():DisplayObject
 		{
@@ -464,6 +582,32 @@ package feathers.controls.renderers
 		/**
 		 * @private
 		 */
+		protected var _disclosureGap:Number = NaN;
+
+		/**
+		 * @private
+		 */
+		public function get disclosureGap():Number
+		{
+			return this._disclosureGap;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set disclosureGap(value:Number):void
+		{
+			if(this._disclosureGap === value)
+			{
+				return;
+			}
+			this._disclosureGap = value;
+			this.invalidate(INVALIDATION_FLAG_STYLES);
+		}
+
+		/**
+		 * @private
+		 */
 		protected var _isOpen:Boolean = false;
 
 		/**
@@ -580,6 +724,11 @@ package feathers.controls.renderers
 				//the location will be null
 				this._leftOffset += this._indentation * (this._location.length - 1);
 			}
+			var disclosureGap:Number = this._gap;
+			if(this._disclosureGap === this._disclosureGap) //!isNaN
+			{
+				disclosureGap = this._disclosureGap;
+			}
 			if(this._currentDisclosureIcon !== null)
 			{
 				var oldIgnoreIconResizes:Boolean = this._ignoreDisclosureIconResizes;
@@ -589,7 +738,7 @@ package feathers.controls.renderers
 					IValidating(this._currentDisclosureIcon).validate();
 				}
 				this._ignoreDisclosureIconResizes = oldIgnoreIconResizes;
-				this._leftOffset += this._currentDisclosureIcon.width + this._gap;
+				this._leftOffset += this._currentDisclosureIcon.width + disclosureGap;
 				if(this._isBranch)
 				{
 					this._currentDisclosureIcon.visible = true;
@@ -608,7 +757,7 @@ package feathers.controls.renderers
 					IValidating(this._currentBranchOrLeafIcon).validate();
 				}
 				this._ignoreBranchOrLeafIconResizes = oldIgnoreIconResizes;
-				this._leftOffset += this._currentBranchOrLeafIcon.width + this._gap;
+				this._leftOffset += this._currentBranchOrLeafIcon.width + disclosureGap;
 			}
 		}
 
