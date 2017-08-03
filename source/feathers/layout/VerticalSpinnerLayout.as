@@ -9,9 +9,11 @@ package feathers.layout
 {
 	import feathers.core.IFeathersControl;
 	import feathers.core.IValidating;
+	import feathers.layout.VerticalAlign;
 
 	import flash.errors.IllegalOperationError;
 	import flash.geom.Point;
+	import flash.geom.Rectangle;
 	import flash.ui.Keyboard;
 
 	import starling.display.DisplayObject;
@@ -168,6 +170,39 @@ package feathers.layout
 		/**
 		 * @private
 		 */
+		protected var _paddingTop:Number = 0;
+
+		/**
+		 * The minimum space, in pixels, above the items, if they
+		 * do not repeat. If items repeat, <code>paddingTop</code> will
+		 * only be used if <code>verticalAlign</code> is set to
+		 * <code>VerticalAlign.TOP</code>. In this case, the first item,
+		 * starting from the top, will be offset by the value of
+		 * <code>paddingTop</code>.
+		 *
+		 * @default 0
+		 */
+		public function get paddingTop():Number
+		{
+			return this._paddingTop;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set paddingTop(value:Number):void
+		{
+			if(this._paddingTop == value)
+			{
+				return;
+			}
+			this._paddingTop = value;
+			this.dispatchEventWith(Event.CHANGE);
+		}
+
+		/**
+		 * @private
+		 */
 		protected var _paddingRight:Number = 0;
 
 		/**
@@ -190,6 +225,39 @@ package feathers.layout
 				return;
 			}
 			this._paddingRight = value;
+			this.dispatchEventWith(Event.CHANGE);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _paddingBottom:Number = 0;
+
+		/**
+		 * The minimum space, in pixels, below the items, if they
+		 * do not repeat. If items repeat, <code>paddingBottom</code> will
+		 * only be used if <code>verticalAlign</code> is set to
+		 * <code>VerticalAlign.BOTTOM</code>. In this case, the first item,
+		 * starting from the bottom, will be offset by the value of
+		 * <code>paddingBottom</code>.
+		 *
+		 * @default 0
+		 */
+		public function get paddingBottom():Number
+		{
+			return this._paddingBottom;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set paddingBottom(value:Number):void
+		{
+			if(this._paddingBottom == value)
+			{
+				return;
+			}
+			this._paddingBottom = value;
 			this.dispatchEventWith(Event.CHANGE);
 		}
 
@@ -252,6 +320,39 @@ package feathers.layout
 				return;
 			}
 			this._horizontalAlign = value;
+			this.dispatchEventWith(Event.CHANGE);
+		}
+		
+		/**
+		 * @private
+		 */
+		protected var _verticalAlign:String = VerticalAlign.MIDDLE;
+
+		[Inspectable(type="String",enumeration="top,middle,bottom")]
+		/**
+		 * The alignment of the items vertically, on the y-axis.
+		 *
+		 * @default feathers.layout.VerticalAlign.MIDDLE
+		 *
+		 * @see feathers.layout.VerticalAlign#TOP
+		 * @see feathers.layout.VerticalAlign#MIDDLE
+		 * @see feathers.layout.VerticalAlign#BOTTOM
+		 */
+		public function get verticalAlign():String
+		{
+			return this._verticalAlign;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set verticalAlign(value:String):void
+		{
+			if(this._verticalAlign == value)
+			{
+				return;
+			}
+			this._verticalAlign = value;
 			this.dispatchEventWith(Event.CHANGE);
 		}
 
@@ -587,6 +688,19 @@ package feathers.layout
 		}
 
 		/**
+		 * @private
+		 */
+		protected var _selectionBounds:Rectangle = new Rectangle();
+
+		/**
+		 * @inheritDoc
+		 */
+		public function get selectionBounds():Rectangle
+		{
+			return this._selectionBounds;
+		}
+
+		/**
 		 * @inheritDoc
 		 */
 		public function layout(items:Vector.<DisplayObject>, viewPortBounds:ViewPortBounds = null, result:LayoutBoundsResult = null):LayoutBoundsResult
@@ -737,27 +851,41 @@ package feathers.layout
 				}
 			}
 
-			var canRepeatItems:Boolean = this._repeatItems && totalHeight > availableHeight;
+			//we add one extra here because the first item renderer in view may
+			//be partially obscured, which would reveal an extra item renderer.
+			var maxVisibleTypicalItemCount:int = Math.ceil(availableHeight / (calculatedTypicalItemHeight + gap)) + 1;
+			var minTotalHeightForRepeat:Number = maxVisibleTypicalItemCount * (calculatedTypicalItemHeight + gap) - gap;
+			var canRepeatItems:Boolean = this._repeatItems && totalHeight >= minTotalHeightForRepeat;
 			if(canRepeatItems)
 			{
 				totalHeight += gap;
 			}
 
-			//in this section, we handle vertical alignment. the selected item
-			//needs to be centered vertically.
-			var verticalAlignOffsetY:Number = Math.round((availableHeight - calculatedTypicalItemHeight) / 2);
+			//in this section, we handle vertical alignment
+			var verticalAlignOffsetY:Number = this._paddingTop;
+			if(this._verticalAlign === VerticalAlign.BOTTOM)
+			{
+				verticalAlignOffsetY = availableHeight - this._paddingBottom - calculatedTypicalItemHeight;
+			}
+			else if(this._verticalAlign === VerticalAlign.MIDDLE)
+			{
+				verticalAlignOffsetY = this._paddingTop + Math.round((availableHeight - this._paddingTop - this._paddingBottom - calculatedTypicalItemHeight) / 2);
+			}
 			if(!canRepeatItems)
 			{
-				totalHeight += 2 * verticalAlignOffsetY;
+				totalHeight += verticalAlignOffsetY + (availableHeight - calculatedTypicalItemHeight - verticalAlignOffsetY);
 			}
-			for(i = 0; i < discoveredItemCount; i++)
+			if(verticalAlignOffsetY !== 0)
 			{
-				item = discoveredItems[i];
-				if(item is ILayoutDisplayObject && !ILayoutDisplayObject(item).includeInLayout)
+				for(i = 0; i < discoveredItemCount; i++)
 				{
-					continue;
+					item = discoveredItems[i];
+					if(item is ILayoutDisplayObject && !ILayoutDisplayObject(item).includeInLayout)
+					{
+						continue;
+					}
+					item.y += verticalAlignOffsetY;
 				}
-				item.y += verticalAlignOffsetY;
 			}
 
 			for(i = 0; i < discoveredItemCount; i++)
@@ -832,6 +960,12 @@ package feathers.layout
 			//we don't want to keep a reference to any of the items, so clear
 			//this cache
 			this._discoveredItemsCache.length = 0;
+
+			//calculate the bounds of the selection rectangle
+			this._selectionBounds.x = 0;
+			this._selectionBounds.y = verticalAlignOffsetY;
+			this._selectionBounds.width = availableWidth;
+			this._selectionBounds.height = calculatedTypicalItemHeight;
 
 			//finally, we want to calculate the result so that the container
 			//can use it to adjust its viewport and determine the minimum and
@@ -966,15 +1100,30 @@ package feathers.layout
 			var gap:Number = this._gap;
 
 			var resultLastIndex:int = 0;
-			//we add one extra here because the first item renderer in view may
-			//be partially obscured, which would reveal an extra item renderer.
-			var maxVisibleTypicalItemCount:int = Math.ceil(height / (calculatedTypicalItemHeight + gap)) + 1;
 
 			var totalItemHeight:Number = itemCount * (calculatedTypicalItemHeight + gap) - gap;
 
-			scrollY -= Math.round((height - calculatedTypicalItemHeight) / 2);
+			//the actual code that figures out which items are visible assumes
+			//that alignment is top. to make it work with other alignments, we
+			//can simply adjust the scroll position!
+			if(this._verticalAlign === VerticalAlign.MIDDLE)
+			{
+				scrollY -= Math.round(this._paddingTop + (height - calculatedTypicalItemHeight) / 2);
+			}
+			else if(this._verticalAlign === VerticalAlign.BOTTOM)
+			{
+				scrollY -= (height - calculatedTypicalItemHeight - this._paddingBottom);
+			}
+			else //top
+			{
+				scrollY -= this._paddingTop;
+			}
 
-			var canRepeatItems:Boolean = this._repeatItems && totalItemHeight > height;
+			//we add one extra here because the first item renderer in view may
+			//be partially obscured, which would reveal an extra item renderer.
+			var maxVisibleTypicalItemCount:int = Math.ceil(height / (calculatedTypicalItemHeight + gap)) + 1;
+			var minTotalHeightForRepeat:Number = maxVisibleTypicalItemCount * (calculatedTypicalItemHeight + gap) - gap;
+			var canRepeatItems:Boolean = this._repeatItems && totalItemHeight >= minTotalHeightForRepeat;
 			if(canRepeatItems)
 			{
 				//if we're repeating, then there's an extra gap
@@ -1088,7 +1237,19 @@ package feathers.layout
 			{
 				result++;
 			}
-			if(result < 0)
+			var canRepeatItems:Boolean = this._repeatItems && bounds.contentHeight === Number.POSITIVE_INFINITY;
+			if(canRepeatItems)
+			{
+				while(result < 0)
+				{
+					result += itemCount;
+				}
+				while(result >= itemCount)
+				{
+					result -= itemCount;
+				}
+			}
+			else if(result < 0)
 			{
 				return 0;
 			}

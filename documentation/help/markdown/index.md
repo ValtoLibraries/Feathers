@@ -15,13 +15,13 @@ Get started with [Feathers](http://feathersui.com/), the open source library of 
 
 -   Set up Starling and Feathers in your preferred development environment:
 
-    -   [Flash Builder](flash-builder.html)
+    -   [Adobe Flash Builder](flash-builder.html)
 
     -   [IntelliJ IDEA](intellij-idea.html)
 
     -   [FlashDevelop](flashdevelop.html)
 
-    -   [Flash Professional](flash-pro.html)
+    -   [Adobe Animate CC](flash-pro.html)
 
 -   Follow the instructions in [Getting Started with Feathers](getting-started.html) to create your first "Hello World" app using Feathers.
 
@@ -40,6 +40,8 @@ There are a number of places where you can get help with Feathers issues or to a
 -   Looking for quick recipes that show you how to do common tasks using Feathers? Check out the [Feathers Cookbook](cookbook/index.html).
 
 ## Upgrades
+
+-   [Feathers 3.3 Migration Guide](migration-guide-3.3.html)
 
 -   [Feathers 3.1 Migration Guide](migration-guide-3.1.html)
 
@@ -71,7 +73,7 @@ A more detailed look at each of the components that Feathers provides.
 
 -   [`DateTimeSpinner`](date-time-spinner.html)
 
--   [`DefaultListItemRenderer` and `DefaultGroupedListItemRenderer`](default-item-renderers.html)
+-   [Item Renderers](default-item-renderers.html)
 
 -   [`Drawers`](drawers.html)
 
@@ -137,6 +139,8 @@ A more detailed look at each of the components that Feathers provides.
 
 -   [`ToggleSwitch`](toggle-switch.html)
 
+-   [`Tree`](tree.html)
+
 -   [`VideoPlayer`](video-player.html)
 
 -   [`WebView`](web-view.html)
@@ -190,6 +194,8 @@ A detailed look at each of the layout algorithms that Feathers provides out-of-t
 -   [`VerticalLayout`](vertical-layout.html)
 
 -   [`VerticalSpinnerLayout`](vertical-spinner-layout.html)
+
+-   [`SlideShowLayout`](slide-show-layout.html)
 
 -   [`TiledColumnsLayout`](tiled-columns-layout.html)
 

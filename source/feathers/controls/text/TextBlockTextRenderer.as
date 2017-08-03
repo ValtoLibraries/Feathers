@@ -1380,7 +1380,7 @@ package feathers.controls.text
 		override public function render(painter:Painter):void
 		{
 			var starling:Starling = this.stage !== null ? this.stage.starling : Starling.current;
-			if(this.textSnapshot !== null && this._updateSnapshotOnScaleChange)
+			if(this._updateSnapshotOnScaleChange)
 			{
 				this.getTransformationMatrix(this.stage, HELPER_MATRIX);
 				var globalScaleX:Number = matrixToScaleX(HELPER_MATRIX);
@@ -1979,16 +1979,12 @@ package feathers.controls.text
 					{
 						this._fontStylesElementFormat.kerning = Kerning.OFF;
 					}
-					if("letterSpacing" in textFormat)
-					{
-						//letterSpacing was added after Starling 2.1
-						var letterSpacing:Number = textFormat["letterSpacing"] / 2;
-						//adobe documentation recommends splitting it between
-						//left and right
-						//http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/ElementFormat.html#trackingRight
-						this._fontStylesElementFormat.trackingRight = letterSpacing;
-						this._fontStylesElementFormat.trackingLeft = letterSpacing;
-					}
+					var letterSpacing:Number = textFormat.letterSpacing / 2;
+					//adobe documentation recommends splitting it between
+					//left and right
+					//http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/engine/ElementFormat.html#trackingRight
+					this._fontStylesElementFormat.trackingRight = letterSpacing;
+					this._fontStylesElementFormat.trackingLeft = letterSpacing;
 					this._currentLeading = textFormat.leading;
 					this._currentVerticalAlign = textFormat.verticalAlign;
 					this._currentHorizontalAlign = textFormat.horizontalAlign;
@@ -2076,6 +2072,7 @@ package feathers.controls.text
 		{
 			var starling:Starling = this.stage !== null ? this.stage.starling : Starling.current;
 			var scaleFactor:Number = starling.contentScaleFactor;
+			this._lastGlobalContentScaleFactor = scaleFactor;
 			//these are getting put into an int later, so we don't want it
 			//to possibly round down and cut off part of the text. 
 			if(this._savedTextLinesWidth < this.actualWidth)
@@ -2097,8 +2094,10 @@ package feathers.controls.text
 			if(this._updateSnapshotOnScaleChange)
 			{
 				this.getTransformationMatrix(this.stage, HELPER_MATRIX);
-				rectangleSnapshotWidth *= matrixToScaleX(HELPER_MATRIX);
-				rectangleSnapshotHeight *= matrixToScaleY(HELPER_MATRIX);
+				this._lastGlobalScaleX = matrixToScaleX(HELPER_MATRIX);
+				this._lastGlobalScaleY = matrixToScaleY(HELPER_MATRIX);
+				rectangleSnapshotWidth *= this._lastGlobalScaleX;
+				rectangleSnapshotHeight *= this._lastGlobalScaleY;
 			}
 			if(rectangleSnapshotWidth >= 1 && rectangleSnapshotHeight >= 1 &&
 				this._nativeFilters !== null && this._nativeFilters.length > 0)

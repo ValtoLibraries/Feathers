@@ -50,6 +50,8 @@ package feathers.controls.text
 	import starling.utils.MatrixUtil;
 	import starling.utils.Pool;
 	import starling.utils.SystemUtil;
+	import flash.ui.KeyLocation;
+	import feathers.system.DeviceCapabilities;
 
 	/**
 	 * Dispatched when the text property changes.
@@ -1404,6 +1406,12 @@ package feathers.controls.text
 			//nativeStage, focus will be removed from the StageText, but the
 			//soft keyboard will incorrectly remain open.
 			starling.nativeStage.focus = null;
+			if(!this.isParentChainVisible())
+			{
+				//this normally happens in render(), but if we're not visible,
+				//we need to hide the StageText manually.
+				this.stageText.visible = false;
+			}
 		}
 
 		/**
@@ -2322,6 +2330,33 @@ package feathers.controls.text
 		/**
 		 * @private
 		 */
+		protected function dispatchKeyboardEventToStage(event:KeyboardEvent):void
+		{
+			var starling:Starling = stageToStarling(this.stage);
+			starling.nativeStage.dispatchEvent(event);
+		}
+
+		/**
+		 * @private
+		 */
+		protected function isParentChainVisible():Boolean
+		{
+			var target:DisplayObject = this;
+			do
+			{
+				if(!target.visible)
+				{
+					return false;
+				}
+				target = target.parent;
+			}
+			while(target)
+			return true;
+		}
+
+		/**
+		 * @private
+		 */
 		protected function textEditor_removedFromStageHandler(event:starling.events.Event):void
 		{
 			//remove this from the stage, if needed
@@ -2396,17 +2431,10 @@ package feathers.controls.text
 		{
 			if(this._stageTextHasFocus)
 			{
-				var target:DisplayObject = this;
-				do
+				if(!this.isParentChainVisible())
 				{
-					if(!target.visible)
-					{
-						this.stageText.stage.focus = null;
-						break;
-					}
-					target = target.parent;
+					this.stageText.stage.focus = null;
 				}
-				while(target)
 			}
 			else
 			{
@@ -2445,10 +2473,19 @@ package feathers.controls.text
 				var starling:Starling = this.stage !== null ? this.stage.starling : Starling.current;
 				starling.nativeStage.focus = starling.nativeStage;
 			}
-			if(event.keyCode === Keyboard.TAB && FocusManager.isEnabledForStage(this.stage))
+			if(FocusManager.isEnabledForStage(this.stage))
 			{
-				event.preventDefault();
-				this.dispatchKeyFocusChangeEvent(event);
+				if(event.keyCode === Keyboard.TAB)
+				{
+					event.preventDefault();
+					this.dispatchKeyFocusChangeEvent(event);
+				}
+				if((event.keyLocation === KeyLocation.D_PAD || DeviceCapabilities.simulateDPad) &&
+					(event.keyCode === Keyboard.ENTER || event.keyCode === Keyboard.UP || event.keyCode === Keyboard.DOWN))
+				{
+					event.preventDefault();
+					this.dispatchKeyboardEventToStage(event);
+				}
 			}
 		}
 

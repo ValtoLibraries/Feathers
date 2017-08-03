@@ -7,21 +7,26 @@ accordance with the terms of the accompanying license agreement.
 */
 package feathers.controls
 {
+	import feathers.controls.Scroller;
+	import feathers.controls.renderers.DefaultTreeItemRenderer;
+	import feathers.controls.renderers.ITreeItemRenderer;
 	import feathers.controls.supportClasses.TreeDataViewPort;
+	import feathers.data.ArrayCollection;
 	import feathers.data.IHierarchicalCollection;
 	import feathers.events.CollectionEventType;
-	import starling.events.Event;
-	import feathers.controls.Scroller;
-	import feathers.layout.IVariableVirtualLayout;
-	import feathers.layout.ILayout;
-	import feathers.layout.VerticalLayout;
 	import feathers.layout.HorizontalAlign;
+	import feathers.layout.ILayout;
+	import feathers.layout.IVariableVirtualLayout;
 	import feathers.layout.VerticalAlign;
-	import flash.geom.Point;
+	import feathers.layout.VerticalLayout;
 	import feathers.skins.IStyleProvider;
-	import feathers.controls.renderers.ITreeItemRenderer;
-	import feathers.controls.renderers.DefaultTreeItemRenderer;
-	import feathers.data.ArrayCollection;
+
+	import flash.geom.Point;
+
+	import starling.events.Event;
+	import flash.events.KeyboardEvent;
+	import flash.ui.Keyboard;
+	import feathers.system.DeviceCapabilities;
 
 	/**
 	 * A style name to add to all item renderers in this tree. Typically
@@ -259,9 +264,9 @@ package feathers.controls
 	 *         text: "Node 3",
 	 *         children:
 	 *         [
-	 *             { text: "Node 4A" },
-	 *             { text: "Node 4B" },
-	 *             { text: "Node 4C" },
+	 *             { text: "Node 3A" },
+	 *             { text: "Node 3B" },
+	 *             { text: "Node 3C" },
 	 *         ]
 	 *     }
 	 * ]);
@@ -274,6 +279,14 @@ package feathers.controls
 	 * };
 	 * 
 	 * this.addChild( tree );</listing>
+	 * <p><strong>Beta Component:</strong> This is a new component, and its APIs
+	 * may need some changes between now and the next version of Feathers to
+	 * account for overlooked requirements or other issues. Upgrading to future
+	 * versions of Feathers may involve manual changes to your code that uses
+	 * this component. The
+	 * <a target="_top" href="../../../help/deprecation-policy.html">Feathers deprecation policy</a>
+	 * will not go into effect until this component's status is upgraded from
+	 * beta to stable.</p>
 	 *
 	 * @see ../../../help/tree.html How to use the Feathers Tree component
 	 * @see ../../../help/default-item-renderers.html How to use the Feathers default item renderer
@@ -361,9 +374,9 @@ package feathers.controls
 		 *         text: "Node 3",
 		 *         children:
 		 *         [
-		 *             { text: "Node 4A" },
-		 *             { text: "Node 4B" },
-		 *             { text: "Node 4C" },
+		 *             { text: "Node 3A" },
+		 *             { text: "Node 3B" },
+		 *             { text: "Node 3C" },
 		 *         ]
 		 *     }
 		 * ]);
@@ -483,6 +496,43 @@ package feathers.controls
 		 * @private
 		 */
 		protected var _helperLocation:Vector.<int> = new <int>[];
+
+		/**
+		 * The currently selected location. Returns an empty
+		 * <code>Vector.&lt;int&gt;</code> if no item is selected.
+		 *
+		 * <p>The following example listens for when selection changes and
+		 * requests the selected location:</p>
+		 *
+		 * <listing version="3.0">
+		 * function tree_changeHandler( event:Event ):void
+		 * {
+		 *     var tree:Tree = Tree( event.currentTarget );
+		 *     var location:Vector.&lt;int&gt; = tree.selectedLocation;
+		 *
+		 * }
+		 * tree.addEventListener( Event.CHANGE, tree_changeHandler );</listing>
+		 *
+		 * <p>Alternatively, you may use the <code>getSelectedLocation()</code>
+		 * method to get the selected location without creating a new
+		 * <code>Vector.&lt;int&gt;</code> instance, to avoid garbage
+		 * collection of temporary objects.</p>
+		 *
+		 * @see #getSelectedLocation()
+		 */
+		public function get selectedLocation():Vector.<int>
+		{
+			return this.getSelectedLocation();
+		}
+
+		/**
+		 * @private
+		 */
+		public function set selectedLocation(value:Vector.<int>):void
+		{
+			var item:Object = this._dataProvider.getItemAtLocation(value);
+			this.selectedItem = item;
+		}
 
 		/**
 		 * @private
@@ -971,6 +1021,42 @@ package feathers.controls
 		}
 
 		/**
+		 * Returns the currently selected location, or an empty
+		 * <code>Vector.&lt;int&gt;</code>, if no item is currently selected.
+		 *
+		 * <p>The following example listens for when selection changes and
+		 * requests the selected location:</p>
+		 *
+		 * <listing version="3.0">
+		 * function tree_changeHandler( event:Event ):void
+		 * {
+		 *     var tree:Tree = Tree( event.currentTarget );
+		 *     var result:Vector.&lt;int&gt; = new &lt;int&gt;[];
+		 *     var location:Vector.&lt;int&gt; = tree.getSelectedLocation(result);
+		 * }
+		 * tree.addEventListener( Event.CHANGE, tree_changeHandler );</listing>
+		 *
+		 * @see #selectedItem
+		 * @see #selectedLocation
+		 */
+		public function getSelectedLocation(result:Vector.<int> = null):Vector.<int>
+		{
+			if(result === null)
+			{
+				result = new <int>[];
+			}
+			else
+			{
+				result.length = 0;
+			}
+			if(this._dataProvider === null || this._selectedItem === null)
+			{
+				return result;
+			}
+			return this._dataProvider.getItemLocation(this._selectedItem, result);
+		}
+
+		/**
 		 * @private
 		 */
 		override protected function initialize():void
@@ -1141,6 +1227,33 @@ package feathers.controls
 			{
 				this._targetVerticalScrollPosition += scrollOffsetY;
 				this.throwTo(NaN, this._targetVerticalScrollPosition, this._verticalAutoScrollTween.totalTime - this._verticalAutoScrollTween.currentTime);
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		override protected function nativeStage_keyDownHandler(event:KeyboardEvent):void
+		{
+			if(!this._isSelectable)
+			{
+				//not selectable, but should scroll
+				super.nativeStage_keyDownHandler(event);
+				return;
+			}
+			if(event.isDefaultPrevented())
+			{
+				return;
+			}
+			if(!this._dataProvider)
+			{
+				return;
+			}
+			if(this._selectedItem !== null &&
+				(event.keyCode === Keyboard.SPACE ||
+				((event.keyLocation === 4 || DeviceCapabilities.simulateDPad) && event.keyCode === Keyboard.ENTER)))
+			{
+				this.dispatchEventWith(Event.TRIGGERED, false, this.selectedItem);
 			}
 		}
 	}

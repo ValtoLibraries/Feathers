@@ -164,6 +164,21 @@ package feathers.controls
 	[Style(name="leftArrowSkin",type="starling.display.DisplayObject")]
 
 	/**
+	 * The space, in pixels, between the callout and the origin.
+	 *
+	 * <p>In the following example, the gap between the callout and its
+	 * origin is set to 10 pixels:</p>
+	 *
+	 * <listing version="3.0">
+	 * callout.originGap = 10;</listing>
+	 *
+	 * @default 0
+	 * 
+	 * @see #origin
+	 */
+	[Style(name="originGap",type="Number")]
+
+	/**
 	 * Quickly sets all padding properties to the same value. The
 	 * <code>padding</code> getter always returns the value of
 	 * <code>paddingTop</code>, but the other padding values may be
@@ -768,7 +783,8 @@ package feathers.controls
 			if(supportedPositions is String)
 			{
 				//fallback for deprecated options
-				callout.supportedDirections = supportedPositions as String;
+				callout._supportedDirections = supportedPositions as String;
+				callout.supportedPositions = getSupportedPositionsFromDirections(callout._supportedDirections);
 			}
 			else
 			{
@@ -838,7 +854,7 @@ package feathers.controls
 			//adjust for that difference.
 			callout.parent.globalToLocal(point, point);
 			callout.x = point.x;
-			callout.y = point.y;
+			callout.y = point.y + callout._originGap;
 			Pool.putPoint(point);
 			if(callout._isValidating)
 			{
@@ -888,7 +904,7 @@ package feathers.controls
 			//adjust for that difference.
 			callout.parent.globalToLocal(point, point);
 			callout.x = point.x;
-			callout.y = point.y;
+			callout.y = point.y - callout._originGap;
 			Pool.putPoint(point);
 			if(callout._isValidating)
 			{
@@ -937,7 +953,7 @@ package feathers.controls
 			//may be in a container that is offset from the global origin, so
 			//adjust for that difference.
 			callout.parent.globalToLocal(point, point);
-			callout.x = point.x;
+			callout.x = point.x + callout._originGap;
 			callout.y = point.y;
 			Pool.putPoint(point);
 			if(callout._isValidating)
@@ -987,7 +1003,7 @@ package feathers.controls
 			//may be in a container that is offset from the global origin, so
 			//adjust for that difference.
 			callout.parent.globalToLocal(point, point);
-			callout.x = point.x;
+			callout.x = point.x - callout._originGap;
 			callout.y = point.y;
 			Pool.putPoint(point);
 			if(callout._isValidating)
@@ -1001,6 +1017,43 @@ package feathers.controls
 				callout.arrowOffset = idealYPosition - yPosition;
 				callout.arrowPosition = RelativePosition.RIGHT;
 			}
+		}
+
+		/**
+		 * @private
+		 */
+		private static function getSupportedPositionsFromDirections(value:String):Vector.<String>
+		{
+			var positions:Vector.<String> = null;
+			if(value === "any")
+			{
+				positions = new <String>[RelativePosition.BOTTOM, RelativePosition.TOP, RelativePosition.RIGHT, RelativePosition.LEFT];
+			}
+			else if(value === "horizontal")
+			{
+				positions = new <String>[RelativePosition.RIGHT, RelativePosition.LEFT];
+			}
+			else if(value === "vertical")
+			{
+				positions = new <String>[RelativePosition.BOTTOM, RelativePosition.TOP];
+			}
+			else if(value === "up")
+			{
+				positions = new <String>[RelativePosition.TOP];
+			}
+			else if(value === "down")
+			{
+				positions = new <String>[RelativePosition.BOTTOM];
+			}
+			else if(value === "right")
+			{
+				positions = new <String>[RelativePosition.RIGHT];
+			}
+			else if(value === "left")
+			{
+				positions = new <String>[RelativePosition.LEFT];
+			}
+			return positions;
 		}
 
 		/**
@@ -1355,37 +1408,8 @@ package feathers.controls
 		 */
 		public function set supportedDirections(value:String):void
 		{
-			var positions:Vector.<String> = null;
-			if(value === "any")
-			{
-				positions = new <String>[RelativePosition.BOTTOM, RelativePosition.TOP, RelativePosition.RIGHT, RelativePosition.LEFT];
-			}
-			else if(value === "horizontal")
-			{
-				positions = new <String>[RelativePosition.RIGHT, RelativePosition.LEFT];
-			}
-			else if(value === "vertical")
-			{
-				positions = new <String>[RelativePosition.BOTTOM, RelativePosition.TOP];
-			}
-			else if(value === "up")
-			{
-				positions = new <String>[RelativePosition.TOP];
-			}
-			else if(value === "down")
-			{
-				positions = new <String>[RelativePosition.BOTTOM];
-			}
-			else if(value === "right")
-			{
-				positions = new <String>[RelativePosition.RIGHT];
-			}
-			else if(value === "left")
-			{
-				positions = new <String>[RelativePosition.LEFT];
-			}
 			this._supportedDirections = value;
-			this.supportedPositions = positions;
+			this.supportedPositions = getSupportedPositionsFromDirections(value);
 		}
 
 		/**
@@ -1968,6 +1992,36 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		protected var _originGap:Number = 0;
+
+		/**
+		 * @private
+		 */
+		public function get originGap():Number
+		{
+			return this._originGap;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set originGap(value:Number):void
+		{
+			if(this.processStyleRestriction(arguments.callee))
+			{
+				return;
+			}
+			if(this._originGap === value)
+			{
+				return;
+			}
+			this._originGap = value;
+			this.invalidate(INVALIDATION_FLAG_STYLES);
+		}
+
+		/**
+		 * @private
+		 */
 		protected var _topArrowGap:Number = 0;
 
 		/**
@@ -2279,12 +2333,12 @@ package feathers.controls
 			var leftOrRightArrowHeight:Number = 0;
 			if(arrowPosition === RelativePosition.LEFT && this._leftArrowSkin !== null)
 			{
-				leftOrRightArrowWidth = this._leftArrowSkin.width + this._leftArrowGap;
+				leftOrRightArrowWidth = this._leftArrowSkin.width + this._leftArrowGap + this._originGap;
 				leftOrRightArrowHeight = this._leftArrowSkin.height;
 			}
 			else if(arrowPosition === RelativePosition.RIGHT && this._rightArrowSkin !== null)
 			{
-				leftOrRightArrowWidth = this._rightArrowSkin.width + this._rightArrowGap;
+				leftOrRightArrowWidth = this._rightArrowSkin.width + this._rightArrowGap + this._originGap;
 				leftOrRightArrowHeight = this._rightArrowSkin.height;
 			}
 			var topOrBottomArrowWidth:Number = 0;
@@ -2292,12 +2346,12 @@ package feathers.controls
 			if(arrowPosition === RelativePosition.TOP && this._topArrowSkin !== null)
 			{
 				topOrBottomArrowWidth = this._topArrowSkin.width;
-				topOrBottomArrowHeight = this._topArrowSkin.height + this._topArrowGap;
+				topOrBottomArrowHeight = this._topArrowSkin.height + this._topArrowGap + this._originGap;
 			}
 			else if(arrowPosition === RelativePosition.BOTTOM && this._bottomArrowSkin !== null)
 			{
 				topOrBottomArrowWidth = this._bottomArrowSkin.width;
-				topOrBottomArrowHeight = this._bottomArrowSkin.height + this._bottomArrowGap;
+				topOrBottomArrowHeight = this._bottomArrowSkin.height + this._bottomArrowGap + this._originGap;
 			}
 			//the content resizes when the callout resizes, so we can treat it
 			//similarly to a background skin

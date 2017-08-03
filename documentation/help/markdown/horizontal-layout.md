@@ -48,7 +48,7 @@ layout.gap = 5;
 
 ### Alignment
 
-We can *align* the items in the layout using the [`horizontalLayout`](../api-reference/feathers/layout/HorizontalLayout.html#horizontalAlign) and [`verticalLayout`](../api-reference/feathers/layout/HorizontalLayout.html#verticalAlign) properties. Horizontal alignment may be used only when the total width of the content (including padding and gap values) is less than or equal to the width of the container that uses the layout. Let's adjust the alignments so that the content will be aligned to the horizontal center and vertical middle:
+We can *align* the items in the layout using the [`horizontalAlign`](../api-reference/feathers/layout/HorizontalLayout.html#horizontalAlign) and [`verticalAlign`](../api-reference/feathers/layout/HorizontalLayout.html#verticalAlign) properties. Horizontal alignment may be used only when the total width of the content (including padding and gap values) is less than or equal to the width of the container that uses the layout. Let's adjust the alignments so that the content will be aligned to the horizontal center and vertical middle:
 
 ``` code
 layout.horizontalAlign = HorizontalAlign.CENTER;
@@ -139,7 +139,7 @@ Percentage dimensions always take precedence, so if we were to pass a numeric va
 
 ## Virtual Horizontal Layout
 
-In a [`List`](list.html) or [`GroupedList`](grouped-list.html), the layout may be *virtualized*, meaning that some items in the layout will not actually exist if they are not visible. This helps to improve performance of a scrolling list because only a limited number of item renderers will be created at any given moment. If the list's data provider is very large, a virtual layout is essential, even on desktop computers that have incredible processing power compared to mobile devices.
+In a [`List`](list.html), [`Tree`](tree.html), or [`GroupedList`](grouped-list.html), the layout may be *virtualized*, meaning that some items in the layout will not actually exist if they are not visible. This helps to improve performance of a scrolling list because only a limited number of item renderers will be created at any given moment. If the list's data provider is very large, a virtual layout is essential, even on desktop computers that have incredible processing power compared to mobile devices.
 
 A virtualized layout will need as estimate about how big a "virtual" item renderer should be. We should set the [`typicalItem`](../api-reference/feathers/controls/List.html#typicalItem) property of the list to have it determine the *typical* width and height of an item renderer to use as this estimated value. If we don't pass in a typical item, the first item in the data provider is used for this estimate.
 
