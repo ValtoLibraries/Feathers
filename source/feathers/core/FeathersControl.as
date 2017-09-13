@@ -14,7 +14,6 @@ package feathers.core
 	import feathers.layout.ILayoutDisplayObject;
 	import feathers.skins.IStyleProvider;
 	import feathers.utils.display.getDisplayObjectDepthFromStage;
-	import feathers.utils.display.stageToStarling;
 
 	import flash.errors.IllegalOperationError;
 	import flash.geom.Matrix;
@@ -2286,6 +2285,22 @@ package feathers.core
 		 * it cannot be used unless a subclass implements the
 		 * <code>IFocusDisplayObject</code> interface.</p>
 		 *
+		 * @copy feathers.core.IFocusDisplayObject#isShowingFocus
+		 *
+		 * @see feathers.core.IFocusDisplayObject#showFocus()
+		 * @see feathers.core.IFocusDisplayObject#hideFocus()
+		 * @see feathers.core.IFocusDisplayObject
+		 */
+		public function get isShowingFocus():Boolean
+		{
+			return this._showFocus;
+		}
+
+		/**
+		 * <p>The implementation of this method is provided for convenience, but
+		 * it cannot be used unless a subclass implements the
+		 * <code>IFocusDisplayObject</code> interface.</p>
+		 *
 		 * @copy feathers.core.IFocusDisplayObject#showFocus()
 		 *
 		 * @see feathers.core.IFocusDisplayObject
@@ -2743,8 +2758,7 @@ package feathers.core
 				this.initializeNow();
 			}
 			this._depth = getDisplayObjectDepthFromStage(this);
-			var starling:Starling = stageToStarling(this.stage);
-			this._validationQueue = ValidationQueue.forStarling(starling);
+			this._validationQueue = ValidationQueue.forStarling(this.stage.starling);
 			if(this.isInvalid())
 			{
 				this._invalidateCount = 0;

@@ -14,7 +14,6 @@ package feathers.controls.text
 	import feathers.events.FeathersEventType;
 	import feathers.skins.IStyleProvider;
 	import feathers.text.StageTextField;
-	import feathers.utils.display.stageToStarling;
 	import feathers.utils.geom.matrixToScaleX;
 	import feathers.utils.geom.matrixToScaleY;
 
@@ -1651,6 +1650,13 @@ package feathers.controls.text
 
 			if(!this._stageTextHasFocus && (stateInvalid || stylesInvalid || dataInvalid || sizeInvalid || this._needsNewTexture))
 			{
+				if(!this.isParentChainVisible())
+				{
+					//issue #1620
+					//our parent has been hidden, so our render() method won't
+					//be called, and we need to hide the StageText.
+					this.stageText.visible = false;
+				}
 				//we're going to update the texture in render() because 
 				//there's a chance that it will be updated more than once per
 				//frame if we do it here.
@@ -2322,9 +2328,8 @@ package feathers.controls.text
 		 */
 		protected function dispatchKeyFocusChangeEvent(event:KeyboardEvent):void
 		{
-			var starling:Starling = stageToStarling(this.stage);
 			var focusEvent:FocusEvent = new FocusEvent(FocusEvent.KEY_FOCUS_CHANGE, true, false, null, event.shiftKey, event.keyCode);
-			starling.nativeStage.dispatchEvent(focusEvent);
+			this.stage.starling.nativeStage.dispatchEvent(focusEvent);
 		}
 
 		/**
@@ -2332,8 +2337,7 @@ package feathers.controls.text
 		 */
 		protected function dispatchKeyboardEventToStage(event:KeyboardEvent):void
 		{
-			var starling:Starling = stageToStarling(this.stage);
-			starling.nativeStage.dispatchEvent(event);
+			this.stage.starling.nativeStage.dispatchEvent(event);
 		}
 
 		/**

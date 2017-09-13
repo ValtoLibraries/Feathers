@@ -104,6 +104,9 @@ package feathers.themes
 	import starling.textures.TextureAtlas;
 	import feathers.core.FocusManager;
 	import starling.display.Stage;
+	import feathers.controls.DataGrid;
+	import feathers.controls.renderers.DefaultDataGridHeaderRenderer;
+	import feathers.controls.renderers.DefaultDataGridCellRenderer;
 
 	/**
 	 * The base class for the "Metal Works" theme for mobile Feathers apps.
@@ -365,6 +368,7 @@ package feathers.themes
 		protected var calloutArrowOverlapGap:int = -2;
 		protected var scrollBarGutterSize:int = 2;
 		protected var focusPaddingSize:int = -1;
+		protected var tabFocusPaddingSize:int = 4;
 
 		/**
 		 * The font styles for standard-sized, light text.
@@ -874,6 +878,11 @@ package feathers.themes
 
 			//check
 			this.getStyleProviderForClass(Check).defaultStyleFunction = this.setCheckStyles;
+
+			//data grid
+			this.getStyleProviderForClass(DataGrid).defaultStyleFunction = this.setDataGridStyles;
+			this.getStyleProviderForClass(DefaultDataGridCellRenderer).defaultStyleFunction = this.setDataGridCellRendererStyles;
+			this.getStyleProviderForClass(DefaultDataGridHeaderRenderer).defaultStyleFunction = this.setDataGridHeaderStyles;
 
 			//date time spinner
 			this.getStyleProviderForClass(DateTimeSpinner).defaultStyleFunction = this.setDateTimeSpinnerStyles;
@@ -1453,6 +1462,68 @@ package feathers.themes
 			check.minGap = this.smallControlGutterSize;
 			check.minTouchWidth = this.gridSize;
 			check.minTouchHeight = this.gridSize;
+		}
+
+	//-------------------------
+	// DataGrid
+	//-------------------------
+
+		protected function setDataGridStyles(grid:DataGrid):void
+		{
+			this.setScrollerStyles(grid);
+			var backgroundSkin:Quad = new Quad(this.gridSize, this.gridSize, LIST_BACKGROUND_COLOR);
+			grid.backgroundSkin = backgroundSkin;
+		}
+
+		protected function setDataGridHeaderStyles(headerRenderer:DefaultDataGridHeaderRenderer):void
+		{
+			headerRenderer.backgroundSkin = new Quad(1, 1, GROUPED_LIST_HEADER_BACKGROUND_COLOR);
+
+			headerRenderer.fontStyles = this.lightUIFontStyles;
+			headerRenderer.disabledFontStyles = this.lightDisabledUIFontStyles;
+			headerRenderer.padding = this.smallGutterSize;
+		}
+
+		protected function setDataGridCellRendererStyles(cellRenderer:DefaultDataGridCellRenderer):void
+		{
+			var skin:ImageSkin = new ImageSkin(this.itemRendererUpSkinTexture);
+			skin.selectedTexture = this.itemRendererSelectedSkinTexture;
+			skin.setTextureForState(ButtonState.DOWN, this.itemRendererSelectedSkinTexture);
+			skin.scale9Grid = ITEM_RENDERER_SCALE9_GRID;
+			skin.width = this.gridSize;
+			skin.height = this.gridSize;
+			skin.minWidth = this.gridSize;
+			skin.minHeight = this.gridSize;
+			cellRenderer.defaultSkin = skin;
+
+			cellRenderer.fontStyles = this.largeLightFontStyles.clone();
+			cellRenderer.disabledFontStyles = this.largeLightDisabledFontStyles.clone();
+			cellRenderer.selectedFontStyles = this.largeDarkFontStyles.clone();
+			cellRenderer.setFontStylesForState(ButtonState.DOWN, this.largeDarkFontStyles.clone());
+
+			cellRenderer.iconLabelFontStyles = this.lightFontStyles.clone();
+			cellRenderer.iconLabelDisabledFontStyles = this.lightDisabledFontStyles.clone();
+			cellRenderer.iconLabelSelectedFontStyles = this.darkFontStyles.clone();
+			cellRenderer.setIconLabelFontStylesForState(ButtonState.DOWN, this.darkFontStyles.clone());
+
+			cellRenderer.accessoryLabelFontStyles = this.lightFontStyles.clone();
+			cellRenderer.accessoryLabelDisabledFontStyles = this.lightDisabledFontStyles.clone();
+			cellRenderer.accessoryLabelSelectedFontStyles = this.darkFontStyles.clone();
+			cellRenderer.setAccessoryLabelFontStylesForState(ButtonState.DOWN, this.darkFontStyles.clone());
+
+			cellRenderer.horizontalAlign = HorizontalAlign.LEFT;
+			cellRenderer.paddingTop = this.smallGutterSize;
+			cellRenderer.paddingBottom = this.smallGutterSize;
+			cellRenderer.paddingLeft = this.gutterSize;
+			cellRenderer.paddingRight = this.gutterSize;
+			cellRenderer.gap = this.gutterSize;
+			cellRenderer.minGap = this.gutterSize;
+			cellRenderer.iconPosition = RelativePosition.LEFT;
+			cellRenderer.accessoryGap = Number.POSITIVE_INFINITY;
+			cellRenderer.minAccessoryGap = this.gutterSize;
+			cellRenderer.accessoryPosition = RelativePosition.RIGHT;
+			cellRenderer.minTouchWidth = this.gridSize;
+			cellRenderer.minTouchHeight = this.gridSize;
 		}
 
 	//-------------------------
@@ -2359,6 +2430,11 @@ package feathers.themes
 			skin.minWidth = this.gridSize;
 			skin.minHeight = this.gridSize;
 			tab.defaultSkin = skin;
+
+			var focusIndicatorSkin:Image = new Image(this.focusIndicatorSkinTexture);
+			focusIndicatorSkin.scale9Grid = FOCUS_INDICATOR_SCALE_9_GRID;
+			tab.focusIndicatorSkin = focusIndicatorSkin;
+			tab.focusPadding = this.tabFocusPaddingSize;
 
 			tab.fontStyles = this.lightUIFontStyles.clone();
 			tab.disabledFontStyles = this.lightDisabledUIFontStyles.clone();
