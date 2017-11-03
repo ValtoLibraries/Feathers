@@ -5442,7 +5442,7 @@ package feathers.controls
 				{
 					//even if explicitWidth is NaN, the view port might measure
 					//a view port width smaller than its content width
-					scrollerWidth = this._viewPort.visibleWidth + this._topViewPortOffset + this._bottomViewPortOffset;
+					scrollerWidth = this._viewPort.visibleWidth + this._leftViewPortOffset + this._rightViewPortOffset;
 				}
 				var totalWidth:Number = this._viewPort.width + this._leftViewPortOffset + this._rightViewPortOffset;
 				if(forceScrollBars || this._horizontalScrollPolicy === ScrollPolicy.ON ||
@@ -8481,7 +8481,7 @@ package feathers.controls
 			super.focusInHandler(event);
 			//using priority here is a hack so that objects deeper in the
 			//display list have a chance to cancel the event first.
-			var priority:int = getDisplayObjectDepthFromStage(this);
+			var priority:int = -getDisplayObjectDepthFromStage(this);
 			this.stage.starling.nativeStage.addEventListener(KeyboardEvent.KEY_DOWN, nativeStage_keyDownHandler, false, priority, true);
 			this.stage.starling.nativeStage.addEventListener("gestureDirectionalTap", stage_gestureDirectionalTapHandler, false, priority, true);
 		}

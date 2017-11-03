@@ -107,6 +107,9 @@ package feathers.themes
 	import starling.textures.TextureSmoothing;
 	import starling.display.Stage;
 	import feathers.core.FocusManager;
+	import feathers.controls.DataGrid;
+	import feathers.controls.renderers.DefaultDataGridCellRenderer;
+	import feathers.controls.renderers.DefaultDataGridHeaderRenderer;
 
 	/**
 	 * The base class for the "Minimal" theme for mobile Feathers apps. Handles
@@ -168,7 +171,7 @@ package feathers.themes
 
 		protected static const DEFAULT_SCALE_9_GRID:Rectangle = new Rectangle(4, 4, 1, 1);
 		protected static const SCROLLBAR_THUMB_SCALE_9_GRID:Rectangle = new Rectangle(1, 1, 2, 2);
-		protected static const ITEM_RENDERER_SCALE_9_GRID:Rectangle = new Rectangle(0.5, 3, 1, 1);
+		protected static const ITEM_RENDERER_SCALE_9_GRID:Rectangle = new Rectangle(1, 3, 1, 1);
 		protected static const TAB_SCALE_9_GRID:Rectangle = new Rectangle(11, 11, 1, 1);
 		protected static const HEADER_SCALE_9_GRID:Rectangle = new Rectangle(1, 3, 1, 1);
 		protected static const SPINNER_LIST_SELECTION_OVERLAY_SCALE9_GRID:Rectangle = new Rectangle(1, 3, 1, 1);
@@ -176,6 +179,10 @@ package feathers.themes
 		protected static const BACK_BUTTON_SCALE9_GRID:Rectangle = new Rectangle(16, 0, 1, 28);
 		protected static const FORWARD_BUTTON_SCALE9_GRID:Rectangle = new Rectangle(3, 0, 1, 28);
 		protected static const FOCUS_INDICATOR_SCALE_9_GRID:Rectangle = new Rectangle(5, 5, 1, 1);
+		protected static const DATA_GRID_HEADER_DIVIDER_SCALE_9_GRID:Rectangle = new Rectangle(0, 1, 4, 3);
+		protected static const DATA_GRID_HEADER_RENDERER_SCALE_9_GRID:Rectangle = new Rectangle(1, 1, 1, 1);
+		protected static const DATA_GRID_COLUMN_RESIZE_SKIN_SCALE_9_GRID:Rectangle = new Rectangle(0, 1, 2, 3);
+		protected static const DATA_GRID_COLUMN_DROP_INDICATOR_SCALE_9_GRID:Rectangle = new Rectangle(0, 1, 2, 3);
 
 		protected static const BACKGROUND_COLOR:uint = 0xf3f3f3;
 		protected static const LIST_BACKGROUND_COLOR:uint = 0xf8f8f8;
@@ -188,6 +195,8 @@ package feathers.themes
 		protected static const MODAL_OVERLAY_ALPHA:Number = 0.4;
 		protected static const VIDEO_OVERLAY_COLOR:uint = 0xcccccc;
 		protected static const VIDEO_OVERLAY_ALPHA:Number = 0.2;
+		protected static const DATA_GRID_COLUMN_OVERLAY_COLOR:uint = 0xeeeeee;
+		protected static const DATA_GRID_COLUMN_OVERLAY_ALPHA:Number = 0.6;
 
 		/**
 		 * The default global text renderer factory for this theme creates a
@@ -380,6 +389,15 @@ package feathers.themes
 
 		protected var treeDisclosureOpenIconTexture:Texture;
 		protected var treeDisclosureClosedIconTexture:Texture;
+
+		protected var dataGridHeaderRendererSkinTexture:Texture;
+		protected var dataGridHeaderDividerSkinTexture:Texture;
+		protected var dataGridColumnResizeSkinTexture:Texture;
+		protected var dataGridColumnDropIndicatorSkinTexture:Texture;
+		protected var dataGridHeaderSortDescendingIconTexture:Texture;
+		protected var dataGridHeaderSortAscendingIconTexture:Texture;
+		protected var dataGridCellRendererDownSkinTexture:Texture;
+		protected var dataGridCellRendererSelectedUpSkinTexture:Texture;
 
 		/**
 		 * The size, in pixels, of major regions in the grid. Used for sizing
@@ -591,6 +609,15 @@ package feathers.themes
 
 			this.treeDisclosureOpenIconTexture = this.atlas.getTexture("tree-disclosure-open-icon0000");
 			this.treeDisclosureClosedIconTexture = this.atlas.getTexture("tree-disclosure-closed-icon0000");
+
+			this.dataGridHeaderRendererSkinTexture = this.atlas.getTexture("data-grid-header-renderer-skin0000");
+			this.dataGridHeaderDividerSkinTexture = this.atlas.getTexture("data-grid-header-divider-skin0000");
+			this.dataGridColumnResizeSkinTexture = this.atlas.getTexture("data-grid-column-resize-skin0000");
+			this.dataGridColumnDropIndicatorSkinTexture = this.atlas.getTexture("data-grid-column-drop-indicator-skin0000");
+			this.dataGridHeaderSortDescendingIconTexture = this.atlas.getTexture("data-grid-header-sort-descending-icon0000");
+			this.dataGridHeaderSortAscendingIconTexture = this.atlas.getTexture("data-grid-header-sort-ascending-icon0000");
+			this.dataGridCellRendererDownSkinTexture = this.atlas.getTexture("data-grid-cell-renderer-down-skin0000");
+			this.dataGridCellRendererSelectedUpSkinTexture = this.atlas.getTexture("data-grid-cell-renderer-selected-up-skin0000");
 		}
 
 		/**
@@ -644,6 +671,11 @@ package feathers.themes
 
 			//check
 			this.getStyleProviderForClass(Check).defaultStyleFunction = this.setCheckStyles;
+
+			//data grid
+			this.getStyleProviderForClass(DataGrid).defaultStyleFunction = this.setDataGridStyles;
+			this.getStyleProviderForClass(DefaultDataGridHeaderRenderer).defaultStyleFunction = this.setDataGridHeaderRendererStyles;
+			this.getStyleProviderForClass(DefaultDataGridCellRenderer).defaultStyleFunction = this.setDataGridCellRendererStyles;
 
 			//date time spinner
 			this.getStyleProviderForClass(DateTimeSpinner).defaultStyleFunction = this.setDateTimeSpinnerStyles;
@@ -801,6 +833,13 @@ package feathers.themes
 		protected function pageIndicatorSelectedSymbolFactory():DisplayObject
 		{
 			return new Image(this.pageIndicatorSelectedSkinTexture);
+		}
+
+		protected function dataGridHeaderDividerFactory():DisplayObject
+		{
+			var skin:ImageSkin = new ImageSkin(this.dataGridHeaderDividerSkinTexture);
+			skin.scale9Grid = DATA_GRID_HEADER_DIVIDER_SCALE_9_GRID;
+			return skin;
 		}
 
 	//-------------------------
@@ -1176,6 +1215,89 @@ package feathers.themes
 			check.verticalAlign = VerticalAlign.MIDDLE;
 			check.minTouchWidth = this.gridSize;
 			check.minTouchHeight = this.gridSize;
+		}
+
+	//-------------------------
+	// DataGrid
+	//-------------------------
+
+		protected function setDataGridStyles(grid:DataGrid):void
+		{
+			this.setScrollerStyles(grid);
+
+			grid.backgroundSkin = new Quad(this.gridSize, this.gridSize, LIST_BACKGROUND_COLOR);
+
+			var columnDragOverlaySkin:Quad = new Quad(1, 1, DATA_GRID_COLUMN_OVERLAY_COLOR);
+			columnDragOverlaySkin.alpha = DATA_GRID_COLUMN_OVERLAY_ALPHA;
+			grid.columnDragOverlaySkin = columnDragOverlaySkin;
+
+			var columnResizeSkin:ImageSkin = new ImageSkin(this.dataGridColumnResizeSkinTexture);
+			columnResizeSkin.scale9Grid = DATA_GRID_COLUMN_RESIZE_SKIN_SCALE_9_GRID;
+			grid.columnResizeSkin = columnResizeSkin;
+
+			var columnDropIndicatorSkin:ImageSkin = new ImageSkin(this.dataGridColumnDropIndicatorSkinTexture);
+			columnDropIndicatorSkin.scale9Grid = DATA_GRID_COLUMN_DROP_INDICATOR_SCALE_9_GRID;
+			grid.columnDropIndicatorSkin = columnDropIndicatorSkin;
+
+			grid.headerDividerFactory = this.dataGridHeaderDividerFactory;
+		}
+
+		protected function setDataGridHeaderRendererStyles(headerRenderer:DefaultDataGridHeaderRenderer):void
+		{
+			var backgroundSkin:ImageSkin = new ImageSkin(this.dataGridHeaderRendererSkinTexture);
+			backgroundSkin.scale9Grid = DATA_GRID_HEADER_RENDERER_SCALE_9_GRID;
+			backgroundSkin.width = this.controlSize;
+			backgroundSkin.height = this.controlSize;
+			backgroundSkin.minWidth = this.controlSize;
+			backgroundSkin.minHeight = this.controlSize;
+			headerRenderer.backgroundSkin = backgroundSkin;
+
+			headerRenderer.sortAscendingIcon = new ImageSkin(this.dataGridHeaderSortAscendingIconTexture);
+			headerRenderer.sortDescendingIcon = new ImageSkin(this.dataGridHeaderSortDescendingIconTexture);
+
+			headerRenderer.fontStyles = this.primaryFontStyles.clone();
+			headerRenderer.disabledFontStyles = this.disabledFontStyles.clone();
+
+			headerRenderer.paddingTop = this.smallGutterSize;
+			headerRenderer.paddingBottom = this.smallGutterSize;
+			headerRenderer.paddingLeft = this.gutterSize;
+			headerRenderer.paddingRight = this.gutterSize;
+			//headerRenderer.gap = this.gutterSize;
+			//headerRenderer.minGap = this.gutterSize;
+		}
+
+		protected function setDataGridCellRendererStyles(cellRenderer:DefaultDataGridCellRenderer):void
+		{
+			var defaultSkin:ImageSkin = new ImageSkin(this.itemRendererUpSkinTexture);
+			defaultSkin.setTextureForState(ButtonState.DOWN, this.dataGridCellRendererDownSkinTexture);
+			defaultSkin.selectedTexture = this.dataGridCellRendererSelectedUpSkinTexture;
+			defaultSkin.scale9Grid = ITEM_RENDERER_SCALE_9_GRID;
+			defaultSkin.width = this.gridSize;
+			defaultSkin.height = this.gridSize;
+			defaultSkin.minWidth = this.gridSize;
+			defaultSkin.minHeight = this.gridSize;
+			cellRenderer.defaultSkin = defaultSkin;
+
+			cellRenderer.fontStyles = this.primaryFontStyles.clone();
+			cellRenderer.disabledFontStyles = this.disabledFontStyles.clone();
+			cellRenderer.iconLabelFontStyles = this.primaryFontStyles.clone();
+			cellRenderer.iconLabelDisabledFontStyles = this.disabledFontStyles.clone();
+			cellRenderer.accessoryLabelFontStyles = this.primaryFontStyles.clone();
+			cellRenderer.accessoryLabelDisabledFontStyles = this.disabledFontStyles.clone();
+
+			cellRenderer.paddingTop = this.smallGutterSize;
+			cellRenderer.paddingBottom = this.smallGutterSize;
+			cellRenderer.paddingLeft = this.gutterSize;
+			cellRenderer.paddingRight = this.gutterSize;
+			cellRenderer.gap = this.gutterSize;
+			cellRenderer.minGap = this.gutterSize;
+			cellRenderer.accessoryGap = Number.POSITIVE_INFINITY;
+			cellRenderer.minAccessoryGap = this.gutterSize;
+			cellRenderer.minTouchWidth = this.gridSize;
+			cellRenderer.minTouchHeight = this.gridSize;
+			cellRenderer.horizontalAlign = HorizontalAlign.LEFT;
+			cellRenderer.iconPosition = RelativePosition.LEFT;
+			cellRenderer.accessoryPosition = RelativePosition.RIGHT;
 		}
 
 	//-------------------------

@@ -4,6 +4,76 @@ Noteworthy changes in official, stable releases of [Feathers UI](http://feathers
 
 ## 3.4.0 - In Development
 
+* New Component: DataGrid displays a list of data as a table. Each item is rendered as a row, divided into columns for each of the item's fields. Supports sorting columns, resizing columns, and drag-and-drop reordering of columns.
+* Support for Android TV. Refactored focus management API and keyboard interaction to support TV remotes. Support scaling to TV resolutions.
+* Collections: support for sorting.
+* Alert: fixed null reference error when buttonsDataProvider is null and the accept or cancel key is pressed.
+* ArrayHierarchicalCollection, VectorHierarchicalCollection: fixed issue where a runtime error could be thrown when checking if an item is a branch if the item is null.
+* AutoComplete: fixed issue where the list did not close if an item is triggered by a keyboard event.
+* BitmapFontTextRenderer: added breakLongWords property which can optionally break in the middle of long words if they extend beyond the width of the text renderer's bounds.
+* BitmapFontTextRenderer: fixed issue where distance field fonts would render blurry and fonts that shouldn't use smoothing would be blurry.
+* Button: added getScaleForState() and setScaleForState() to support different rendering scales in all states, in addition to the existing scaleWhenDown and scaleWhenHovering.
+* Button, ToggleButton, ToggleSwitch, List, GroupedList, Tree: Event.TRIGGERED and Event.CHANGE may also be dispatched for Keyboard.ENTER if the key location is KeyLocation.D_PAD.
+* Callout: added originGap property to optionally add extra spacing between the callout and its origin.
+* DateTimeSpinner: fixed issue where internal SpinnerLists were not disabled when isEnabled is set to false.
+* DeviceCapabilities: added simulateDPad property that allows regular keyboard arrow keys to interact with components similarly to a TV remote or another device that dispatches keyboard events with KeyLocation.D_PAD.
+* DeviceCapabilities: methods that accept a flash.display.Stage parameter now default to null and fall back to Starling.current.nativeStage.
+* DragDropManager: fixed issue where a null reference error could be thrown if the drag source's stage property was null during cleanup.
+* FocusManager: can change focus up, down, left, or right if the keyLocation property of the KeyboardEvent is KeyLocation.D_PAD.
+* FocusManager: supports TransformGestureEvent.GESTURE_DIRECTIONAL_TAP for focus navigation on Apple tvOS.
+* HorizontalSpinnerLayout: added horizontalAlign property to allow the selected item to be aligned to the left or right instead of the default center.
+* HorizontalSpinnerLayout: added paddingLeft and paddingRight to affect the position of the selected item, in addition to the horizontalAlign property.
+* IFocusDisplayObject, added nextUpFocus, nextDownFocus, nextLeftFocus, and nextRightFocus properties, similar to previousTabFocus and nextTabFocus.
+* IFocusDisplayObject: added isShowingFocus property to check if the focused object is showing its focus indicator.
+* IListCollection: added sortCompareFunction property to allow sorting of items in the collection.
+* ImageLoader: fixed issue where a texture that is too large for the current profile would result in a runtime error instead of being caught and turned into Event.IO_ERROR.
+* ImageSkin: the defaultColor property defaults to 0xffffff so that it behaves more like the defaultTexture.
+* ImageSkin: throws a runtime error if the color property from the Image superclass is set. Use defaultColor instead.
+* IScreenNavigatorItem: added transitionDelayEvent to optionally delay the start of the transition until the screen dispatches an event. This allows the screen extra time to initialize and do things like load assets from the web.
+* ISpinnerLayout: added selectionBounds getter to allow the layout to customize where the selectionOverlaySkin should be positioned.
+* KeyToEvent: new superclass for KeyToTrigger to allow other events to easily get dispatched on key press.
+* KeyToSelect, KeyToState, KeyToTrigger: added keyLocation property to optionally require a specific key location (like KeyLocation.D_PAD).
+* LayoutGroup: fixed issue where AutoSizeMode.STAGE could be ignored if children are positioned beyond stageWidth and stageHeight, which could have made the container larger than expected.
+* List, GroupedList, Scroller, SpinnerList, TextArea: uses native flash.events.KeyboardEvent.KEY_DOWN for keyboard interaction so that they can cancel focus changes, if necessary.
+* List, GroupedList, Tree: fixed issue where a layout could be broken if the typicalItem were null.
+* Mobile Themes: Now enable the FocusManager by default, just like desktop.
+* NumericStepper: added useLeftAndRightKeys property to optionally allow stepper to be changed with Keyboard.LEFT and Keyboard.RIGHT instead of Keyboard.UP and Keyboard.DOWN.
+* PickerList: fixed issue where the pop-up list may be given focus in the wrong focus manager when it uses a different focus manager than the PickerList.
+* ScreenDensityScaleFactorManager: added support for Android TV and Apple tvOS.
+* ScrollBar, SimpleScrollBar, Slider: fixed issue where the scroll bar could not reach the maximum scroll position with certain page or step values.
+* SpinnerList: added hideSelectionOverlayUnlessFocused to allow the selectionOverlaySkin to be hidden when the list is not focused if showSelectionOverlay is true.
+* SpinnerList: added showSelectionOverlay property to completely hide the selectionOverlaySkin skin when set to false.
+* SpinnerList: The selectedIndex and selectedItem is changed immediately when an item renderer is triggered or keyboard events change selection, instead of waiting for the animation to complete.
+* StageTextTextEditor: keyboard arrow keys and Keyboard.ENTER are re-dispatched if KeyLocation.D_PAD so that this text editor will support focus changes, similar to how Keyboard.TAB is already re-dispatched.
+* TapToEvent: new superclass for TapToTrigger to allow other events to easily get dispatched when tapping a display object.
+* TapToEvent, TapToTrigger: added new tapCount property to wait for a specific number of taps before dispatching the event.
+* TextBlockTextEditor: improved support for bidiLevel 1 and right-to-left languages.
+* TextBlockTextRenderer, TextFieldTextRenderer: fixed issue where updateSnapshotOnScaleChange would result in incorrect texture dimensions if the scale was set after the component validated the first time but before it rendered.
+* TextInput: added iconPosition property and support for RelativePosition.RIGHT.
+* Todos Example: added a TabBar to filter items based on if they are completed or not.
+* ToggleButton: added scaleWhenSelected property.
+* TouchToState: if TouchPhase.HOVER is dispatched before TouchPhase.BEGAN, returns to hover state on TouchPhase.ENDED if hitTest() is successful.
+* Tree: fixed issue where hasVariableItemDimensions was incorrectly forced to true, if possible. Should now be set manually on the layout.
+* VerticalSpinnerLayout: added verticalAlign property to allow the selected item to be aligned to the top or bottom instead of the default middle.
+* VerticalSpinnerLayout: added paddingTop and paddingBottom to affect the position of the selected item, in addition to the verticalAlign property.
+* VideoPlayer: added netStreamFactory to customize how the flash.net.NetStream is created.
+
+## 3.3.1 - October 2017
+
+* BitmapFontTextRenderer: fixed issue where multiple text renderers with multiple custom mesh styles would incorrectly share a single style.
+* FeathersControl: fixed issue where focusIndicatorSkin was not always disposed.
+* FontStylesSet: fixed issue where properties from a new starling.text.TextFormat were incorrectly copied to the old TextFormat, which could cause other components to change font styles too.
+* ImageLoader: fixed issue where texture would not be reused when starling.textures.Texture.asyncBitmapUploadEnabled is false.
+* ImageLoader: fixed issue where error was thrown if using texture cache and the texture could not be reused in its current state on restoration.
+* ImageLoader: fixed issue where a runtime error could be thrown if the texture is disposed while the application is deactivated on mobile.
+* Scroller: fixed issue where top and bottom offsets were used instead of left and right when determining if the horizontal scroll bar should be displayed.
+* Scroller: fixed issue where pull views would not work sometimes if hasElasticEdges is false.
+* ScrollText: fixed issue where Event.TRIGGERED would not work if FocusManager is enabled because it didn't implement INativeFocusOwner to return its TextField.
+* StageTextTextEditor: fixed issue where setting the parent TextInput's visible property to false inside a FeathersEventType.FOCUS_OUT listener would hide the background, but not the StageText.
+* StageTextTextEditor: fixed issue where calling clearFocus() after setting the parent TextInput's visible property to false would hide the background, but not the StageText.
+* TabNavigator: fixed issue where the previous screen was incorrectly recreated if isSwipeEnabled is true and a swipe transition is cancelled.
+* TextInputRestrict: fixed issue where -, ^, and \ characters could not be escaped. Used by BitmapFontTextEditor and TextBlockTextEditor.
+
 ## 3.3.0 - July 2017
 
 * New Component: Tree is a List-like component designed for displaying nested hierarchical data, with branches that may be opened and closed.
@@ -19,6 +89,7 @@ Noteworthy changes in official, stable releases of [Feathers UI](http://feathers
 * Cover, Reveal, Wipe: fixed issue where runtime error could be thrown if mask was unexpectedly removed from display objects.
 * DateTimeSpinner: fixed issue where you could not set the itemRendererFactory directly on the inner SpinnerLists when the DateTimeSpinner itemRendererFactory was null.
 * DefaultFocusManager: fixed issue where addEventListener() was called where removeEventListener() should have been called, potentially causing a memory leak.
+* DefaultFocusManager: fixed issue where maintainTouchFocus was incorrectly ignored.
 * Direction: added NONE constant that may be used in some situations.
 * DropDownPopUpContentManager: fixed issue where the delegate used for animation was not scaled by the same amount as the content it mirrored.
 * DropDownPopUpContentManager, VerticalCenteredPopUpContentManager: fixed issue where content was not positioned or resized correctly if PopUpManager.root is scaled.

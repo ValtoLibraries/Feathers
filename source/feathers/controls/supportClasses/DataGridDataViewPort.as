@@ -493,6 +493,23 @@ package feathers.controls.supportClasses
 			this.invalidate(INVALIDATION_FLAG_DATA);
 		}
 
+		private var _customColumnSizes:Vector.<Number> = null;
+
+		public function get customColumnSizes():Vector.<Number>
+		{
+			return this._customColumnSizes;
+		}
+
+		public function set customColumnSizes(value:Vector.<Number>):void
+		{
+			if(this._customColumnSizes === value)
+			{
+				return;
+			}
+			this._customColumnSizes = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
 		private var _ignoreSelectionChanges:Boolean = false;
 
 		private var _isSelectable:Boolean = true;
@@ -785,6 +802,7 @@ package feathers.controls.supportClasses
 				rowRenderer.columns = null;
 				rowRenderer.index = -1;
 				rowRenderer.visible = false;
+				rowRenderer.customColumnSizes = null;
 				activeRowRenderers[activeRowRenderersCount] = rowRenderer;
 				activeRowRenderersCount++;
 			}
@@ -826,6 +844,7 @@ package feathers.controls.supportClasses
 			rowRenderer.columns = this._columns;
 			rowRenderer.index = rowIndex;
 			rowRenderer.owner = this._owner;
+			rowRenderer.customColumnSizes = this._customColumnSizes;
 
 			if(!isTemporary)
 			{
@@ -883,14 +902,16 @@ package feathers.controls.supportClasses
 			}
 			else
 			{
-				newTypicalItemIsInDataProvider = true;
 				if(this._dataProvider !== null && this._dataProvider.length > 0)
 				{
+					newTypicalItemIsInDataProvider = true;
 					typicalItem = this._dataProvider.getItemAt(0);
 				}
 			}
 
-			if(typicalItem !== null)
+			//#1645 The typicalItem can be null if the data provider contains
+			//a null value at index 0. this is the only time we allow null.
+			if(typicalItem !== null || newTypicalItemIsInDataProvider)
 			{
 				var typicalRenderer:DataGridRowRenderer = this._rowRendererMap[typicalItem] as DataGridRowRenderer;
 				if(typicalRenderer !== null)
@@ -1061,6 +1082,7 @@ package feathers.controls.supportClasses
 					//if this row renderer used to be the typical row
 					//renderer, but it isn't anymore, it may have been set invisible!
 					rowRenderer.visible = true;
+					rowRenderer.customColumnSizes = this._customColumnSizes;
 					if(this._updateForDataReset)
 					{
 						//similar to calling updateItemAt(), replacing the data

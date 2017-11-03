@@ -517,7 +517,7 @@ package feathers.core
 
 		/**
 		 * When the <code>FeathersControl</code> constructor is called, the
-		 * <code>globalStyleProvider</code> property is set to this value. May be
+		 * <code>styleProvider</code> property is set to this value. May be
 		 * <code>null</code>.
 		 *
 		 * <p>Typically, a subclass of <code>FeathersControl</code> will
@@ -1474,6 +1474,36 @@ package feathers.core
 		}
 
 		/**
+		 * <p>The implementation of this method is provided for convenience, but
+		 * it cannot be used unless a subclass implements the
+		 * <code>IFocusDisplayObject</code> interface.</p>
+		 *
+		 * @copy feathers.core.IFocusDisplayObject#isShowingFocus
+		 *
+		 * @see feathers.core.IFocusDisplayObject#showFocus()
+		 * @see feathers.core.IFocusDisplayObject#hideFocus()
+		 * @see feathers.core.IFocusDisplayObject
+		 */
+		public function get isShowingFocus():Boolean
+		{
+			return this._showFocus;
+		}
+
+		/**
+		 * <p>The implementation of this method is provided for convenience, but
+		 * it cannot be used unless a subclass implements the
+		 * <code>IFocusDisplayObject</code> interface.</p>
+		 *
+		 * @copy feathers.core.IFocusDisplayObject#maintainTouchFocus
+		 *
+		 * @see feathers.core.IFocusDisplayObject
+		 */
+		public function get maintainTouchFocus():Boolean
+		{
+			return false;
+		}
+
+		/**
 		 * @private
 		 */
 		protected var _nextTabFocus:IFocusDisplayObject = null;
@@ -2278,22 +2308,6 @@ package feathers.core
 		public function resetStyleProvider():void
 		{
 			this.styleProvider = this.defaultStyleProvider;
-		}
-
-		/**
-		 * <p>The implementation of this method is provided for convenience, but
-		 * it cannot be used unless a subclass implements the
-		 * <code>IFocusDisplayObject</code> interface.</p>
-		 *
-		 * @copy feathers.core.IFocusDisplayObject#isShowingFocus
-		 *
-		 * @see feathers.core.IFocusDisplayObject#showFocus()
-		 * @see feathers.core.IFocusDisplayObject#hideFocus()
-		 * @see feathers.core.IFocusDisplayObject
-		 */
-		public function get isShowingFocus():Boolean
-		{
-			return this._showFocus;
 		}
 
 		/**

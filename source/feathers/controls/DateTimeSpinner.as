@@ -1417,6 +1417,11 @@ package feathers.controls
 				this.refreshSelection();
 			}
 
+			if(localeInvalid || editingModeInvalid || stateInvalid || spinnerListFactoryInvalid)
+			{
+				this.refreshEnabled();
+			}
+
 			this.autoSizeIfNeeded();
 
 			this.layoutChildren();
@@ -2097,6 +2102,19 @@ package feathers.controls
 				this.meridiemList.selectedIndex = (this._value.hours <= MAX_HOURS_VALUE_12HOURS) ? 0 : 1;
 			}
 			this._ignoreListChanges = oldIgnoreListChanges;
+		}
+
+		/**
+		 * @private
+		 */
+		protected function refreshEnabled():void
+		{
+			var listCount:int = this.listGroup.numChildren;
+			for(var i:int = 0; i < listCount; i++)
+			{
+				var list:SpinnerList = SpinnerList(this.listGroup.getChildAt(i));
+				list.isEnabled = this._isEnabled;
+			}
 		}
 
 		/**

@@ -10,10 +10,11 @@ package feathers.controls
 	import feathers.controls.DataGrid;
 	import feathers.controls.DataGridColumn;
 	import feathers.controls.Scroller;
-	import feathers.controls.renderers.IDataGridHeaderRenderer;
 	import feathers.controls.renderers.DefaultDataGridHeaderRenderer;
+	import feathers.controls.renderers.IDataGridHeaderRenderer;
 	import feathers.controls.supportClasses.DataGridDataViewPort;
 	import feathers.core.IValidating;
+	import feathers.data.ArrayCollection;
 	import feathers.data.IListCollection;
 	import feathers.data.ListCollection;
 	import feathers.data.SortOrder;
@@ -25,17 +26,17 @@ package feathers.controls
 	import feathers.events.CollectionEventType;
 	import feathers.events.DragDropEvent;
 	import feathers.events.FeathersEventType;
-	import feathers.layout.FlowLayout;
 	import feathers.layout.HorizontalAlign;
 	import feathers.layout.HorizontalLayout;
 	import feathers.layout.HorizontalLayoutData;
 	import feathers.layout.ILayout;
-	import feathers.layout.ISpinnerLayout;
 	import feathers.layout.IVariableVirtualLayout;
+	import feathers.layout.VerticalAlign;
 	import feathers.layout.VerticalLayout;
 	import feathers.skins.IStyleProvider;
 	import feathers.system.DeviceCapabilities;
 
+	import flash.errors.IllegalOperationError;
 	import flash.events.KeyboardEvent;
 	import flash.events.TransformGestureEvent;
 	import flash.geom.Point;
@@ -51,18 +52,98 @@ package feathers.controls
 	import starling.utils.Pool;
 
 	/**
-	 * Determines if the height of the header drag indicator is equal to the
+	 * A skin to display when dragging one of the data grid's headers to
+	 * highlight the column where it was orignally located.
+	 *
+	 * <p>In the following example, the data grid's column overlay skin is provided:</p>
+	 *
+	 * <listing version="3.0">
+	 * var skin:Quad = new Quad(1, 1, 0x999999);
+	 * skin.alpha = 0.5;
+	 * grid.columnDragOverlaySkin = skin;</listing>
+	 *
+	 * @default null
+	 * 
+	 * @see #reorderColumns
+	 */
+	[Style(name="columnDragOverlaySkin",type="starling.display.DisplayObject")]
+
+	/**
+	 * A skin to display when resizing one of the data grid's headers to
+	 * indicate how it will be resized.
+	 *
+	 * <p>In the following example, the data grid's column resize skin is provided:</p>
+	 *
+	 * <listing version="3.0">
+	 * grid.columnResizeSkin = new Image( texture );</listing>
+	 *
+	 * @default null
+	 * 
+	 * @see #resizableColumns
+	 * @see feathers.controls.DataGridColumn#resizable
+	 */
+	[Style(name="columnResizeSkin",type="starling.display.DisplayObject")]
+
+	/**
+	 * Specifies a custom style name for cell renderers that will be used if
+	 * the <code>customCellRendererStyleName</code> property from a
+	 * <code>DataGridColumn</code> is <code>null</code>.
+	 *
+	 * <p>The following example sets the cell renderer style name:</p>
+	 *
+	 * <listing version="3.0">
+	 * column.customCellRendererStyleName = "my-custom-cell-renderer";</listing>
+	 *
+	 * <p>In your theme, you can target this sub-component name to provide
+	 * different skins than the default style:</p>
+	 *
+	 * <listing version="3.0">
+	 * getStyleProviderForClass( DefaultDataGridCellRenderer ).setFunctionForStyleName( "my-custom-cell-renderer", setCustomCellRendererStyles );</listing>
+	 *
+	 * @default null
+	 *
+	 * @see feathers.core.FeathersControl#styleNameList
+	 */
+	[Style(name="customCellRendererStyleName",type="String")]
+
+	/**
+	 * Specifies a custom style name for header renderers that will be used if
+	 * the <code>customHeaderRendererStyleName</code> property from a
+	 * <code>DataGridColumn</code> is <code>null</code>.
+	 *
+	 * <p>The following example sets the header renderer style name:</p>
+	 *
+	 * <listing version="3.0">
+	 * column.customHeaderRendererStyleName = "my-custom-header-renderer";</listing>
+	 *
+	 * <p>In your theme, you can target this sub-component name to provide
+	 * different skins than the default style:</p>
+	 *
+	 * <listing version="3.0">
+	 * getStyleProviderForClass( DefaultDataGridHeaderRenderer ).setFunctionForStyleName( "my-custom-header-renderer", setCustomHeaderRendererStyles );</listing>
+	 *
+	 * @default null
+	 *
+	 * @see feathers.core.FeathersControl#styleNameList
+	 */
+	[Style(name="customHeaderRendererStyleName",type="String")]
+
+	/**
+	 * Determines if the height of the column drop indicator is equal to the
 	 * height of the headers, or if it extends to the full height of the data
 	 * grid's view port.
 	 *
-	 * <p>In the following example, the data grid's header drag indicator is extended:</p>
+	 * <p>In the following example, the data grid's column drop skin is extended:</p>
 	 *
 	 * <listing version="3.0">
-	 * grid.extendedHeaderDragIndicator = true;</listing>
+	 * grid.extendedColumnDropIndicator = true;</listing>
 	 *
 	 * @default false
+	 * 
+	 * @see #reorderColumns
+	 * @see #style:columnDropIndicatorSkin
 	 */
-	[Style(name="extendedHeaderDragIndicator",type="Boolean")]
+	[Style(name="extendedColumnDropIndicator",type="Boolean")]
 
 	/**
 	 * The default background to display in the data grid's header.
@@ -79,9 +160,9 @@ package feathers.controls
 	[Style(name="headerBackgroundSkin",type="starling.display.DisplayObject")]
 
 	/**
-	 * A function called that is expected to return a new divider to appear
-	 * between header renderers. If <code>null</code>, no dividers will
-	 * appear between header renderers.
+	 * A function that returns new dividers that separate each of the data
+	 * grid's header renderers. If <code>null</code>, no dividers will appear
+	 * between the header renderers.
 	 *
 	 * <p>The function is expected to have the following signature:</p>
 	 * 
@@ -115,35 +196,18 @@ package feathers.controls
 	[Style(name="headerBackgroundDisabledSkin",type="starling.display.DisplayObject")]
 
 	/**
-	 * The alpha value used for the header's drag avatar.
+	 * The alpha value used for the column's drag avatar.
 	 *
-	 * <p>In the following example, the data grid's header drag avatar alpha value is customized:</p>
+	 * <p>In the following example, the data grid's column drag avatar alpha value is customized:</p>
 	 *
 	 * <listing version="3.0">
-	 * grid.headerDragAvatarAlpha = 0.5;</listing>
+	 * grid.columnDragAvatarAlpha = 0.5;</listing>
 	 *
 	 * @default 0.8
 	 * 
 	 * @see #reorderColumns
 	 */
-	[Style(name="headerDragAvatarAlpha",type="Number")]
-
-	/**
-	 * A skin to display when dragging one of the data grid's headers to
-	 * highlight the column where it was orignally located.
-	 *
-	 * <p>In the following example, the data grid's column overlay skin is provided:</p>
-	 *
-	 * <listing version="3.0">
-	 * var skin:Quad = new Quad(1, 1, 0x999999);
-	 * skin.alpha = 0.5;
-	 * grid.headerDragColumnOverlaySkin = skin;</listing>
-	 *
-	 * @default null
-	 * 
-	 * @see #reorderColumns
-	 */
-	[Style(name="headerDragColumnOverlaySkin",type="starling.display.DisplayObject")]
+	[Style(name="columnDragAvatarAlpha",type="Number")]
 
 	/**
 	 * A skin to display when dragging one of the data grid's headers to indicate where
@@ -152,13 +216,14 @@ package feathers.controls
 	 * <p>In the following example, the data grid's header drag indicator is provided:</p>
 	 *
 	 * <listing version="3.0">
-	 * grid.headerDragIndicatorSkin = new Image( texture );</listing>
+	 * grid.columnDropIndicatorSkin = new Image( texture );</listing>
 	 *
 	 * @default null
 	 * 
 	 * @see #reorderColumns
+	 * @see #style:extendedColumnDropIndicator
 	 */
-	[Style(name="headerDragIndicatorSkin",type="starling.display.DisplayObject")]
+	[Style(name="columnDropIndicatorSkin",type="starling.display.DisplayObject")]
 
 	/**
 	 * The duration, in seconds, of the animation when the selected item is
@@ -173,6 +238,27 @@ package feathers.controls
 	 * @default 0.25
 	 */
 	[Style(name="keyScrollDuration",type="Number")]
+
+	/**
+	 * A function that returns new dividers that separate each of the data
+	 * grid's columns. If <code>null</code>, no dividers will appear between
+	 * columns.
+	 *
+	 * <p>The function is expected to have the following signature:</p>
+	 * 
+	 * <pre>function():DisplayObject</pre>
+	 *
+	 * <p>The following example provides a factory for the vertical dividers:</p>
+	 *
+	 * <listing version="3.0">
+	 * grid.verticalDividerFactory = function():DisplayObject
+	 * {
+	 *     return = new ImageSkin( texture );
+	 * };</listing>
+	 *
+	 * @default null
+	 */
+	[Style(name="verticalDividerFactory",type="Function")]
 
 	/**
 	 * Dispatched when the selected item changes.
@@ -200,6 +286,46 @@ package feathers.controls
 	[Event(name="change",type="starling.events.Event")]
 
 	/**
+	 * Displays a collection of items as a table. Each item is rendered as a
+	 * row, divided into columns for each of the item's fields. Supports
+	 * scrolling, custom cell renderers, sorting columns, resizing columns, and
+	 * drag and drop reordering of columns.
+	 *
+	 * <p>The following example creates a data grid, gives it a data provider,
+	 * defines its columns, and listens for when the selection changes:</p>
+	 *
+	 * <listing version="3.0">
+	 * var grid:DataGrid = new DataGrid();
+	 * 
+	 * grid.dataProvider = new ArrayCollection(
+	 * [
+	 *     { item: "Chicken breast", dept: "Meat", price: "5.90" },
+	 *     { item: "Butter", dept: "Dairy", price: "4.69" },
+	 *     { item: "Broccoli", dept: "Produce", price: "2.99" },
+	 *     { item: "Whole Wheat Bread", dept: "Bakery", price: "2.49" },
+	 * ]);
+	 * 
+	 * grid.columns = new ArrayCollection(
+	 * [
+	 *     new DataGridColumn("item", "Item"),
+	 *     new DataGridColumn("dept", "Department"),
+	 *     new DataGridColumn("price", "Unit Price"),
+	 * ]);
+	 * 
+	 * grid.addEventListener( Event.CHANGE, grid_changeHandler );
+	 * 
+	 * this.addChild( grid );</listing>
+	 *
+	 * <p><strong>Beta Component:</strong> This is a new component, and its APIs
+	 * may need some changes between now and the next version of Feathers to
+	 * account for overlooked requirements or other issues. Upgrading to future
+	 * versions of Feathers may involve manual changes to your code that uses
+	 * this component. The
+	 * <a href="https://feathersui.com/help/deprecation-policy.html">Feathers deprecation policy</a>
+	 * will not go into effect until this component's status is upgraded from
+	 * beta to stable.</p>
+	 *
+	 * @see ../../../help/data-grid.html How to use the Feathers DataGrid component
 	 * 
 	 * @productversion Feathers 3.4.0
 	 */
@@ -271,6 +397,16 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		protected var _headerDividerGroup:LayoutGroup = null;
+
+		/**
+		 * @private
+		 */
+		protected var _verticalDividerGroup:LayoutGroup = null;
+
+		/**
+		 * @private
+		 */
 		protected var _headerLayout:HorizontalLayout = null;
 
 		/**
@@ -291,12 +427,12 @@ package feathers.controls
 		/**
 		 * @private
 		 */
-		protected var _activeDividers:Vector.<DisplayObject> = new <DisplayObject>[];
+		protected var _headerDividerStorage:DividerFactoryStorage = new DividerFactoryStorage();
 
 		/**
 		 * @private
 		 */
-		protected var _inactiveDividers:Vector.<DisplayObject> = new <DisplayObject>[];
+		protected var _verticalDividerStorage:DividerFactoryStorage = new DividerFactoryStorage();
 
 		/**
 		 * @private
@@ -350,7 +486,7 @@ package feathers.controls
 		 * Determines if the data grid's columns may be reordered using drag
 		 * and drop.
 		 *
-		 * <p>The following example enables colum reordering:</p>
+		 * <p>The following example enables column reordering:</p>
 		 *
 		 * <listing version="3.0">
 		 * grid.reorderColumns = true;</listing>
@@ -373,20 +509,85 @@ package feathers.controls
 		/**
 		 * @private
 		 */
-		protected var _headerDragIndicatorSkin:DisplayObject = null;
+		protected var _sortableColumns:Boolean = false;
 
 		/**
-		 * @private
+		 * Determines if the data grid's columns may be sorted.
+		 *
+		 * <p>The following example enables column sorting:</p>
+		 *
+		 * <listing version="3.0">
+		 * grid.sortableColumns = true;</listing>
+		 *
+		 * @default false
+		 * 
+		 * @see feathers.controls.DataGridColumn#sortOrder
 		 */
-		public function get headerDragIndicatorSkin():DisplayObject
+		public function get sortableColumns():Boolean
 		{
-			return this._headerDragIndicatorSkin;
+			return this._sortableColumns;
 		}
 
 		/**
 		 * @private
 		 */
-		public function set headerDragIndicatorSkin(value:DisplayObject):void
+		public function set sortableColumns(value:Boolean):void
+		{
+			this._sortableColumns = value;
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _resizableColumns:Boolean = false;
+
+		/**
+		 * Determines if the data grid's columns may be resized.
+		 *
+		 * <p>The following example enables column resizing:</p>
+		 *
+		 * <listing version="3.0">
+		 * grid.resizableColumns = true;</listing>
+		 *
+		 * @default false
+		 * 
+		 * @see #style:columnResizeSkin
+		 */
+		public function get resizableColumns():Boolean
+		{
+			return this._resizableColumns;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set resizableColumns(value:Boolean):void
+		{
+			this._resizableColumns = value;
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _currentColumnDropIndicatorSkin:DisplayObject = null;
+
+		/**
+		 * @private
+		 */
+		protected var _columnDropIndicatorSkin:DisplayObject = null;
+
+		/**
+		 * @private
+		 */
+		public function get columnDropIndicatorSkin():DisplayObject
+		{
+			return this._columnDropIndicatorSkin;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set columnDropIndicatorSkin(value:DisplayObject):void
 		{
 			if(this.processStyleRestriction(arguments.callee))
 			{
@@ -396,26 +597,31 @@ package feathers.controls
 				}
 				return;
 			}
-			this._headerDragIndicatorSkin = value;
+			this._columnDropIndicatorSkin = value;
 		}
 
 		/**
 		 * @private
 		 */
-		protected var _headerDragColumnOverlaySkin:DisplayObject = null;
+		protected var _currentColumnResizeSkin:DisplayObject = null;
 
 		/**
 		 * @private
 		 */
-		public function get headerDragColumnOverlaySkin():DisplayObject
+		protected var _columnResizeSkin:DisplayObject = null;
+
+		/**
+		 * @private
+		 */
+		public function get columnResizeSkin():DisplayObject
 		{
-			return this._headerDragColumnOverlaySkin;
+			return this._columnResizeSkin;
 		}
 
 		/**
 		 * @private
 		 */
-		public function set headerDragColumnOverlaySkin(value:DisplayObject):void
+		public function set columnResizeSkin(value:DisplayObject):void
 		{
 			if(this.processStyleRestriction(arguments.callee))
 			{
@@ -425,57 +631,91 @@ package feathers.controls
 				}
 				return;
 			}
-			this._headerDragColumnOverlaySkin = value;
+			this._columnResizeSkin = value;
 		}
 
 		/**
 		 * @private
 		 */
-		protected var _headerDragAvatarAlpha:Number = 0.8;
+		protected var _currentColumnDragOverlaySkin:DisplayObject = null;
 
 		/**
 		 * @private
 		 */
-		public function get headerDragAvatarAlpha():Number
+		protected var _columnDragOverlaySkin:DisplayObject = null;
+
+		/**
+		 * @private
+		 */
+		public function get columnDragOverlaySkin():DisplayObject
 		{
-			return this._headerDragAvatarAlpha;
+			return this._columnDragOverlaySkin;
 		}
 
 		/**
 		 * @private
 		 */
-		public function set headerDragAvatarAlpha(value:Number):void
+		public function set columnDragOverlaySkin(value:DisplayObject):void
+		{
+			if(this.processStyleRestriction(arguments.callee))
+			{
+				if(value !== null)
+				{
+					value.dispose();
+				}
+				return;
+			}
+			this._columnDragOverlaySkin = value;
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _columnDragAvatarAlpha:Number = 0.8;
+
+		/**
+		 * @private
+		 */
+		public function get columnDragAvatarAlpha():Number
+		{
+			return this._columnDragAvatarAlpha;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set columnDragAvatarAlpha(value:Number):void
 		{
 			if(this.processStyleRestriction(arguments.callee))
 			{
 				return;
 			}
-			this._headerDragAvatarAlpha = value;
+			this._columnDragAvatarAlpha = value;
 		}
 
 		/**
 		 * @private
 		 */
-		protected var _extendedHeaderDragIndicator:Boolean = false;
+		protected var _extendedColumnDropIndicator:Boolean = false;
 
 		/**
 		 * @private
 		 */
-		public function get extendedHeaderDragIndicator():Boolean
+		public function get extendedColumnDropIndicator():Boolean
 		{
-			return this._extendedHeaderDragIndicator;
+			return this._extendedColumnDropIndicator;
 		}
 
 		/**
 		 * @private
 		 */
-		public function set extendedHeaderDragIndicator(value:Boolean):void
+		public function set extendedColumnDropIndicator(value:Boolean):void
 		{
 			if(this.processStyleRestriction(arguments.callee))
 			{
 				return;
 			}
-			this._extendedHeaderDragIndicator = value;
+			this._extendedColumnDropIndicator = value;
 		}
 
 		/**
@@ -532,6 +772,24 @@ package feathers.controls
 		 * grid's data, so the horizontal and vertical scroll positions will be
 		 * reset, and the data grid's selection will be cleared.
 		 *
+		 * <p>The following example passes in a data provider and columns:</p>
+		 *
+		 * <listing version="3.0">
+		 * grid.dataProvider = new ArrayCollection(
+		 * [
+		 *     { item: "Chicken breast", dept: "Meat", price: "5.90" },
+		 *     { item: "Butter", dept: "Dairy", price: "4.69" },
+		 *     { item: "Broccoli", dept: "Produce", price: "2.99" },
+		 *     { item: "Whole Wheat Bread", dept: "Bakery", price: "2.49" },
+		 * ]);
+		 * 
+		 * grid.columns = new ArrayCollection(
+		 * [
+		 *     new DataGridColumn("item", "Item"),
+		 *     new DataGridColumn("dept", "Department"),
+		 *     new DataGridColumn("price", "Unit Price"),
+		 * ]);</listing>
+		 *
 		 * <p><em>Warning:</em> A data grid's data provider cannot contain
 		 * duplicate items. To display the same item in multiple item
 		 * renderers, you must create separate objects with the same
@@ -551,6 +809,7 @@ package feathers.controls
 		 *
 		 * @default null
 		 *
+		 * @see #columns
 		 * @see feathers.data.IListCollection#dispose()
 		 * @see feathers.data.ArrayCollection
 		 * @see feathers.data.VectorCollection
@@ -611,11 +870,32 @@ package feathers.controls
 		protected var _columns:IListCollection = null;
 
 		/**
+		 * Defines the columns to display for each item in the data provider.
+		 * If <code>null</code>, the data grid will attempt to populate the
+		 * columns automatically.
+		 *
+		 * <p>The following example passes in a data provider and columns:</p>
+		 *
+		 * <listing version="3.0">
+		 * grid.dataProvider = new ArrayCollection(
+		 * [
+		 *     { item: "Chicken breast", dept: "Meat", price: "5.90" },
+		 *     { item: "Butter", dept: "Dairy", price: "4.69" },
+		 *     { item: "Broccoli", dept: "Produce", price: "2.99" },
+		 *     { item: "Whole Wheat Bread", dept: "Bakery", price: "2.49" },
+		 * ]);
 		 * 
+		 * grid.columns = new ArrayCollection(
+		 * [
+		 *     new DataGridColumn("item", "Item"),
+		 *     new DataGridColumn("dept", "Department"),
+		 *     new DataGridColumn("price", "Unit Price"),
+		 * ]);</listing>
 		 *
 		 * @default null
 		 * 
 		 * @see #dataProvider
+		 * @see feathers.controls.DataGridColumn
 		 */
 		public function get columns():IListCollection
 		{
@@ -1157,10 +1437,44 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		protected var _verticalDividerFactory:Function = null;
+
+		/**
+		 * @private
+		 * 
+		 * @see #style:verticalDividerFactory
+		 */
+		public function get verticalDividerFactory():Function
+		{
+			return this._verticalDividerFactory;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set verticalDividerFactory(value:Function):void
+		{
+			if(this.processStyleRestriction(arguments.callee))
+			{
+				return;
+			}
+			if(this._verticalDividerFactory === value)
+			{
+				return;
+			}
+			this._verticalDividerFactory = value;
+			this.invalidate(INVALIDATION_FLAG_STYLES);
+		}
+
+		/**
+		 * @private
+		 */
 		protected var _headerDividerFactory:Function = null;
 
 		/**
 		 * @private
+		 * 
+		 * @see #style:headerDividerFactory
 		 */
 		public function get headerDividerFactory():Function
 		{
@@ -1187,6 +1501,154 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		protected var _cellRendererFactory:Function = null;
+		
+		/**
+		 * Specifies a default factory for cell renderers that will be used if
+		 * the <code>cellRendererFactory</code> from a
+		 * <code>DataGridColumn</code> is <code>null</code>.
+		 *
+		 * <p>The function is expected to have the following signature:</p>
+		 *
+		 * <pre>function():IDataGridCellRenderer</pre>
+		 *
+		 * <p>The following example provides a factory for the data grid:</p>
+		 *
+		 * <listing version="3.0">
+		 * grid.cellRendererFactory = function():IDataGridCellRenderer
+		 * {
+		 *     var cellRenderer:CustomCellRendererClass = new CustomCellRendererClass();
+		 *     cellRenderer.backgroundSkin = new Quad( 10, 10, 0xff0000 );
+		 *     return cellRenderer;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see feathers.controls.renderers.IDataGridCellRenderer
+		 */
+		public function get cellRendererFactory():Function
+		{
+			return this._cellRendererFactory;
+		}
+		
+		/**
+		 * @private
+		 */
+		public function set cellRendererFactory(value:Function):void
+		{
+			if(this._cellRendererFactory === value)
+			{
+				return;
+			}
+			this._cellRendererFactory = value;
+			this.dispatchEventWith(Event.CHANGE);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _customCellRendererStyleName:String = null;
+
+		/**
+		 * @private
+		 * 
+		 * @see #style:customCellRendererStyleName
+		 */
+		public function get customCellRendererStyleName():String
+		{
+			return this._customCellRendererStyleName;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set customCellRendererStyleName(value:String):void
+		{
+			if(this._customCellRendererStyleName === value)
+			{
+				return;
+			}
+			this._customCellRendererStyleName = value;
+			this.dispatchEventWith(Event.CHANGE);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _headerRendererFactory:Function = null;
+		
+		/**
+		 * Specifies a default factory for header renderers that will be used if
+		 * the <code>headerRendererFactory</code> from a
+		 * <code>DataGridColumn</code> is <code>null</code>.
+		 *
+		 * <p>The function is expected to have the following signature:</p>
+		 *
+		 * <pre>function():IDataGridHeaderRenderer</pre>
+		 *
+		 * <p>The following example provides a factory for the data grid:</p>
+		 *
+		 * <listing version="3.0">
+		 * grid.headerRendererFactory = function():IDataGridHeaderRenderer
+		 * {
+		 *     var headerRenderer:CustomHeaderRendererClass = new CustomHeaderRendererClass();
+		 *     headerRenderer.backgroundSkin = new Quad( 10, 10, 0xff0000 );
+		 *     return headerRenderer;
+		 * };</listing>
+		 *
+		 * @default null
+		 *
+		 * @see feathers.controls.renderers.IDataGridHeaderRenderer
+		 */
+		public function get headerRendererFactory():Function
+		{
+			return this._headerRendererFactory;
+		}
+		
+		/**
+		 * @private
+		 */
+		public function set headerRendererFactory(value:Function):void
+		{
+			if(this._headerRendererFactory === value)
+			{
+				return;
+			}
+			this._headerRendererFactory = value;
+			this.dispatchEventWith(Event.CHANGE);
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _customHeaderRendererStyleName:String = null;
+
+		/**
+		 * @private
+		 * 
+		 * @see #style:customHeaderRendererStyleName
+		 */
+		public function get customHeaderRendererStyleName():String
+		{
+			return this._customHeaderRendererStyleName;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set customHeaderRendererStyleName(value:String):void
+		{
+			if(this._customHeaderRendererStyleName === value)
+			{
+				return;
+			}
+			this._customHeaderRendererStyleName = value;
+			this.dispatchEventWith(Event.CHANGE);
+		}
+
+		/**
+		 * @private
+		 */
 		protected var _draggedHeaderIndex:int = -1;
 
 		/**
@@ -1203,6 +1665,26 @@ package feathers.controls
 		 * @private
 		 */
 		protected var _headerTouchY:Number;
+
+		/**
+		 * @private
+		 */
+		protected var _headerDividerTouchID:int = -1;
+
+		/**
+		 * @private
+		 */
+		protected var _headerDividerTouchX:Number;
+		
+		/**
+		 * @private
+		 */
+		protected var _resizingColumnIndex:int = -1;
+
+		/**
+		 * @private
+		 */
+		protected var _customColumnSizes:Vector.<Number> = null;
 
 		/**
 		 * The pending item index to scroll to after validating. A value of
@@ -1277,18 +1759,20 @@ package feathers.controls
 		 */
 		override public function dispose():void
 		{
-			if(this._headerDragIndicatorSkin !== null &&
-				this._headerDragIndicatorSkin.parent === null)
+			if(this._columnDropIndicatorSkin !== null &&
+				this._columnDropIndicatorSkin.parent === null)
 			{
-				this._headerDragIndicatorSkin.dispose();
-				this._headerDragIndicatorSkin = null;
+				this._columnDropIndicatorSkin.dispose();
+				this._columnDropIndicatorSkin = null;
 			}
-			if(this._headerDragColumnOverlaySkin !== null &&
-				this._headerDragColumnOverlaySkin.parent === null)
+			if(this._columnDragOverlaySkin !== null &&
+				this._columnDragOverlaySkin.parent === null)
 			{
-				this._headerDragColumnOverlaySkin.dispose();
-				this._headerDragColumnOverlaySkin = null;
+				this._columnDragOverlaySkin.dispose();
+				this._columnDragOverlaySkin = null;
 			}
+			this.refreshInactiveHeaderDividers(true);
+			this.refreshInactiveVerticalDividers(true);
 			//clearing selection now so that the data provider setter won't
 			//cause a selection change that triggers events.
 			this._selectedIndices.removeEventListeners();
@@ -1315,10 +1799,18 @@ package feathers.controls
 				this.viewPort = this.dataViewPort;
 			}
 
+			if(this._verticalDividerGroup === null)
+			{
+				this._verticalDividerGroup = new LayoutGroup();
+				this._verticalDividerGroup.touchable = false;
+				this.addChild(this._verticalDividerGroup);
+			}
+
 			if(this._headerLayout === null)
 			{
 				this._headerLayout = new HorizontalLayout();
 				this._headerLayout.useVirtualLayout = false;
+				this._headerLayout.verticalAlign = VerticalAlign.JUSTIFY;
 			}
 
 			if(this._headerGroup === null)
@@ -1328,6 +1820,12 @@ package feathers.controls
 			}
 
 			this._headerGroup.layout = this._headerLayout;
+
+			if(this._headerDividerGroup === null)
+			{
+				this._headerDividerGroup = new LayoutGroup();
+				this.addChild(this._headerDividerGroup);
+			}
 
 			if(!hasLayout)
 			{
@@ -1360,9 +1858,32 @@ package feathers.controls
 				this.refreshHeaderStyles();
 			}
 
+			this.refreshColumns();
+
 			this.refreshHeaderRenderers();
 			this.refreshDataViewPortProperties();
 			super.draw();
+		}
+
+		/**
+		 * @private
+		 * If the columns are not defined, we can try to create them automatically.
+		 */
+		protected function refreshColumns():void
+		{
+			if(this._columns !== null || this._dataProvider === null || this._dataProvider.length === 0)
+			{
+				return;
+			}
+			var columns:Array = [];
+			var firstItem:Object = this._dataProvider.getItemAt(0);
+			var pushIndex:int = 0;
+			for(var key:String in firstItem)
+			{
+				columns[pushIndex] = new DataGridColumn(key);
+				pushIndex++;
+			}
+			this._columns = new ArrayCollection(columns);
 		}
 
 		/**
@@ -1381,6 +1902,7 @@ package feathers.controls
 		{
 			super.calculateViewPortOffsets(forceScrollBars, useActualBounds);
 
+			this._headerLayout.paddingLeft = this._leftViewPortOffset;
 			this._headerLayout.paddingRight = this._rightViewPortOffset;
 			if(useActualBounds)
 			{
@@ -1399,27 +1921,233 @@ package feathers.controls
 		 */
 		override protected function layoutChildren():void
 		{
+			this.validateCustomColumnSizes();
+			this.layoutHeaderRenderers();
+
+			this._headerLayout.paddingLeft = this._leftViewPortOffset;
 			this._headerLayout.paddingRight = this._rightViewPortOffset;
 			this._headerGroup.width = this.actualWidth;
 			this._headerGroup.validate();
 			this._headerGroup.x = 0;
 			this._headerGroup.y = this._topViewPortOffset - this._headerGroup.height;
+			this._headerDividerGroup.x = this._headerGroup.x;
+			this._headerDividerGroup.y = this._headerGroup.y;
+			this._headerDividerGroup.width = this._headerGroup.width;
 
 			super.layoutChildren();
 
-			this.refreshDividers();
+			this._verticalDividerGroup.x = this._headerGroup.x;
+			this._verticalDividerGroup.y = this._headerGroup.y + this._headerGroup.height;
+			this._verticalDividerGroup.width = this._headerGroup.width;
+			this._verticalDividerGroup.height = this.viewPort.visibleHeight;
+
+			this.refreshHeaderDividers();
+			this.refreshVerticalDividers();
 		}
 
 		/**
 		 * @private
 		 */
-		protected function refreshDividers():void
+		protected function validateCustomColumnSizes():void
 		{
-			var columnCount:int = this._columns.length;
-			var dividerCount:int = 0;
-			if(this._headerDividerFactory !== null)
+			if(this._customColumnSizes === null || this._customColumnSizes.length < this._columns.length)
 			{
-				dividerCount = columnCount;
+				return;
+			}
+
+			var availableWidth:Number = this.actualWidth - this._leftViewPortOffset - this._rightViewPortOffset;
+			var count:int = this._customColumnSizes.length;
+			var totalWidth:Number = 0;
+			var indices:Vector.<int> = new <int>[];
+			for(var i:int = 0; i < count; i++)
+			{
+				var column:DataGridColumn = DataGridColumn(this._columns.getItemAt(i));
+				if(column.width === column.width) //!isNaN
+				{
+					//if the width is set explicitly, skip it!
+					availableWidth -= column.width;
+					continue;
+				}
+				var size:Number = this._customColumnSizes[i];
+				totalWidth += size;
+				indices[i] = i;
+			}
+			if(totalWidth === availableWidth)
+			{
+				return;
+			}
+
+			//make a copy so that this is detected as a change
+			this._customColumnSizes = this._customColumnSizes.slice();
+
+			var widthToDistribute:Number = availableWidth - totalWidth;
+			this.distributeWidthToIndices(widthToDistribute, indices, totalWidth);
+			this.dataViewPort.customColumnSizes = this._customColumnSizes;
+		}
+
+		/**
+		 * @private
+		 */
+		protected function distributeWidthToIndices(widthToDistribute:Number, indices:Vector.<int>, totalWidthOfIndices:Number):void
+		{
+			while(Math.abs(widthToDistribute) > 1)
+			{
+				//this will be the store value if we need to loop again
+				var nextWidthToDistribute:Number = widthToDistribute;
+				var count:int = indices.length;
+				for(var i:int = count - 1; i >= 0; i--)
+				{
+					var index:int = indices[i];
+					var headerRenderer:IDataGridHeaderRenderer = IDataGridHeaderRenderer(this._headerGroup.getChildAt(index));
+					var columnWidth:Number = headerRenderer.width;
+					var column:DataGridColumn = DataGridColumn(this._columns.getItemAt(index));
+					var percent:Number = columnWidth / totalWidthOfIndices;
+					var offset:Number = widthToDistribute * percent;
+					var newWidth:Number = this._customColumnSizes[index] + offset;
+					if(newWidth < column.minWidth)
+					{
+						offset += (column.minWidth - newWidth);
+						newWidth = column.minWidth;
+						//we've hit the minimum, so skip it if we loop again
+						indices.removeAt(i);
+						//also readjust the total to exclude this column
+						//so that the percentages still add up to 100%
+						totalWidthOfIndices -= columnWidth;
+					}
+					this._customColumnSizes[index] = newWidth;
+					nextWidthToDistribute -= offset;
+				}
+				widthToDistribute = nextWidthToDistribute;
+			}
+
+			if(widthToDistribute !== 0)
+			{
+				//if we have less than a pixel left, just add it to the
+				//final column and exit the loop
+				this._customColumnSizes[this._customColumnSizes.length - 1] += widthToDistribute;
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function layoutHeaderRenderers():void
+		{
+			var columnCount:int = 0;
+			if(this._columns !== null)
+			{
+				columnCount = this._columns.length;
+			}
+			for(var i:int = 0; i < columnCount; i++)
+			{
+				var headerRenderer:IDataGridHeaderRenderer = IDataGridHeaderRenderer(this._headerGroup.getChildAt(i));
+				var column:DataGridColumn = DataGridColumn(this._columns.getItemAt(i));
+				if(column.width === column.width) //!isNaN
+				{
+					headerRenderer.width = column.width;
+					headerRenderer.layoutData = null;
+				}
+				else if(this._customColumnSizes !== null && i < this._customColumnSizes.length)
+				{
+					headerRenderer.width = this._customColumnSizes[i];
+					headerRenderer.layoutData = null;
+				}
+				else if(headerRenderer.layoutData === null)
+				{
+					headerRenderer.layoutData = new HorizontalLayoutData(100);
+				}
+				headerRenderer.minWidth = column.minWidth;
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function refreshVerticalDividers():void
+		{
+			this.refreshInactiveVerticalDividers(this._verticalDividerStorage.factory !== this._verticalDividerFactory);
+			this._verticalDividerStorage.factory = this._verticalDividerFactory;
+
+			var columnCount:int = 0;
+			if(this._columns !== null)
+			{
+				columnCount = this._columns.length;
+			}
+			var dividerCount:int = 0;
+			if(this._verticalDividerFactory !== null)
+			{
+				dividerCount = columnCount - 1;
+			}
+
+			this._headerGroup.validate();
+			var activeDividers:Vector.<DisplayObject> = this._verticalDividerStorage.activeDividers;
+			var inactiveDividers:Vector.<DisplayObject> = this._verticalDividerStorage.inactiveDividers;
+			for(var i:int = 0; i < dividerCount; i++)
+			{
+				var verticalDivider:DisplayObject = null;
+				if(inactiveDividers.length > 0)
+				{
+					verticalDivider = inactiveDividers.shift();
+					this._verticalDividerGroup.setChildIndex(verticalDivider, i);
+				}
+				else
+				{
+					verticalDivider = DisplayObject(this._verticalDividerFactory());
+					this._verticalDividerGroup.addChildAt(verticalDivider, i);
+				}
+				activeDividers[i] = verticalDivider;
+				verticalDivider.height = this._viewPort.visibleHeight;
+				if(verticalDivider is IValidating)
+				{
+					IValidating(verticalDivider).validate();
+				}
+				var headerRenderer:IDataGridHeaderRenderer = IDataGridHeaderRenderer(this._headerGroup.getChildAt(i));
+				verticalDivider.x = headerRenderer.x + headerRenderer.width - (verticalDivider.width / 2);
+				verticalDivider.y = 0;
+			}
+			this.freeInactiveVerticalDividers();
+		}
+
+		/**
+		 * @private
+		 */
+		protected function refreshInactiveVerticalDividers(forceCleanup:Boolean):void
+		{
+			var temp:Vector.<DisplayObject> = this._verticalDividerStorage.inactiveDividers;
+			this._verticalDividerStorage.inactiveDividers = this._verticalDividerStorage.activeDividers;
+			this._verticalDividerStorage.activeDividers = temp;
+			if(forceCleanup)
+			{
+				this.freeInactiveVerticalDividers();
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function freeInactiveVerticalDividers():void
+		{
+			var inactiveDividers:Vector.<DisplayObject> = this._verticalDividerStorage.inactiveDividers;
+			var dividerCount:int = inactiveDividers.length;
+			for(var i:int = 0; i < dividerCount; i++)
+			{
+				var verticalDivider:DisplayObject = inactiveDividers.shift();
+				verticalDivider.removeFromParent(true);
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function refreshHeaderDividers():void
+		{
+			this.refreshInactiveHeaderDividers(this._headerDividerStorage.factory !== this._headerDividerFactory);
+			this._headerDividerStorage.factory = this._headerDividerFactory;
+
+			var dividerCount:int = 0;
+			if(this._columns !== null)
+			{
+				dividerCount = this._columns.length;
 				if(this._scrollBarDisplayMode !== ScrollBarDisplayMode.FIXED ||
 					this._minVerticalScrollPosition === this._maxVerticalScrollPosition)
 				{
@@ -1428,37 +2156,68 @@ package feathers.controls
 			}
 
 			this._headerGroup.validate();
-			var temp:Vector.<DisplayObject> = this._inactiveDividers;
-			this._inactiveDividers = this._activeDividers;
-			this._activeDividers = temp;
+			var activeDividers:Vector.<DisplayObject> = this._headerDividerStorage.activeDividers;
+			var inactiveDividers:Vector.<DisplayObject> = this._headerDividerStorage.inactiveDividers;
 			for(var i:int = 0; i < dividerCount; i++)
 			{
-				var divider:DisplayObject = null;
-				if(this._inactiveDividers.length > 0)
+				var headerDivider:DisplayObject = null;
+				if(inactiveDividers.length > 0)
 				{
-					divider = this._inactiveDividers.shift();
-					this.setChildIndex(divider, this.getChildIndex(this._headerGroup) + 1);
+					headerDivider = inactiveDividers.shift();
+					this._headerDividerGroup.setChildIndex(headerDivider, i);
+				}
+				else if(this._headerDividerFactory !== null)
+				{
+					headerDivider = DisplayObject(this._headerDividerFactory());
+					headerDivider.addEventListener(TouchEvent.TOUCH, headerDivider_touchHandler);
+					this._headerDividerGroup.addChildAt(headerDivider, i);
 				}
 				else
 				{
-					divider = DisplayObject(this._headerDividerFactory());
-					this.addChild(divider);
+					headerDivider = new Quad(3, 1, 0xff00ff);
+					headerDivider.alpha = 0;
+					headerDivider.addEventListener(TouchEvent.TOUCH, headerDivider_touchHandler);
+					this._headerDividerGroup.addChildAt(headerDivider, i);
 				}
-				this._activeDividers[i] = divider;
-				var headerRenderer:IDataGridHeaderRenderer = this._headerStorage.activeHeaderRenderers[i];
-				divider.height = headerRenderer.height;
-				if(divider is IValidating)
+				activeDividers[i] = headerDivider;
+				var headerRenderer:IDataGridHeaderRenderer = IDataGridHeaderRenderer(this._headerGroup.getChildAt(i));
+				headerDivider.height = headerRenderer.height;
+				if(headerDivider is IValidating)
 				{
-					IValidating(divider).validate();
+					IValidating(headerDivider).validate();
 				}
-				divider.x = this._headerGroup.x + headerRenderer.x + headerRenderer.width - (divider.width / 2);
-				divider.y = this._headerGroup.y + headerRenderer.y;
+				headerDivider.x = headerRenderer.x + headerRenderer.width - (headerDivider.width / 2);
+				headerDivider.y = headerRenderer.y;
 			}
-			dividerCount = this._inactiveDividers.length;
-			for(i = 0; i < dividerCount; i++)
+			this.freeInactiveHeaderDividers();
+		}
+
+		/**
+		 * @private
+		 */
+		protected function refreshInactiveHeaderDividers(forceCleanup:Boolean):void
+		{
+			var temp:Vector.<DisplayObject> = this._headerDividerStorage.inactiveDividers;
+			this._headerDividerStorage.inactiveDividers = this._headerDividerStorage.activeDividers;
+			this._headerDividerStorage.activeDividers = temp;
+			if(forceCleanup)
 			{
-				divider = this._inactiveDividers.shift();
-				divider.removeFromParent(true);
+				this.freeInactiveHeaderDividers();
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function freeInactiveHeaderDividers():void
+		{
+			var inactiveDividers:Vector.<DisplayObject> = this._headerDividerStorage.inactiveDividers;
+			var dividerCount:int = inactiveDividers.length;
+			for(var i:int = 0; i < dividerCount; i++)
+			{
+				var headerDivider:DisplayObject = inactiveDividers.shift();
+				headerDivider.removeEventListener(TouchEvent.TOUCH, headerDivider_touchHandler);
+				headerDivider.removeFromParent(true);
 			}
 		}
 
@@ -1479,12 +2238,20 @@ package feathers.controls
 		 */
 		protected function findUnrenderedData():void
 		{
+			var temp:Vector.<IDataGridHeaderRenderer> = this._headerStorage.inactiveHeaderRenderers;
+			this._headerStorage.inactiveHeaderRenderers = this._headerStorage.activeHeaderRenderers;
+			this._headerStorage.activeHeaderRenderers = temp;
+
+			var activeHeaderRenderers:Vector.<IDataGridHeaderRenderer> = this._headerStorage.activeHeaderRenderers;
+			var inactiveHeaderRenderers:Vector.<IDataGridHeaderRenderer> = this._headerStorage.inactiveHeaderRenderers;
+
 			var columnCount:int = 0;
 			if(this._columns !== null)
 			{
 				columnCount = this._columns.length;
 			}
 
+			var activePushIndex:int = activeHeaderRenderers.length;
 			var unrenderedDataLastIndex:int = this._unrenderedHeaders.length;
 			for(var i:int = 0; i < columnCount; i++)
 			{
@@ -1493,16 +2260,6 @@ package feathers.controls
 				if(headerRenderer !== null)
 				{
 					headerRenderer.columnIndex = i;
-					if(column.width === column.width) //!isNaN
-					{
-						headerRenderer.width = column.width;
-						headerRenderer.layoutData = null;
-					}
-					else if(headerRenderer.layoutData === null)
-					{
-						headerRenderer.layoutData = new HorizontalLayoutData(100, 100);
-					}
-					headerRenderer.minWidth = column.minWidth;
 					headerRenderer.visible = true;
 					if(column === this._sortedColumn)
 					{
@@ -1533,6 +2290,18 @@ package feathers.controls
 						//won't have changed much, if at all.
 						headerRenderer.data = null;
 						headerRenderer.data = column;
+					}
+					activeHeaderRenderers[activePushIndex] = headerRenderer;
+					activePushIndex++;
+
+					var inactiveIndex:int = inactiveHeaderRenderers.indexOf(headerRenderer);
+					if(inactiveIndex >= 0)
+					{
+						inactiveHeaderRenderers[inactiveIndex] = null;
+					}
+					else
+					{
+						throw new IllegalOperationError("DataGrid: header renderer map contains bad data. This may be caused by duplicate items in the columns collection, which is not allowed.");
 					}
 				}
 				else
@@ -1602,12 +2371,20 @@ package feathers.controls
 			var headerRendererFactory:Function = column.headerRendererFactory;
 			if(headerRendererFactory === null)
 			{
+				headerRendererFactory = this._headerRendererFactory;
+			}
+			if(headerRendererFactory === null)
+			{
 				headerRendererFactory = defaultHeaderRendererFactory;
 			}
 			var customHeaderRendererStyleName:String = column.customHeaderRendererStyleName;
+			if(customHeaderRendererStyleName === null)
+			{
+				customHeaderRendererStyleName = this._customHeaderRendererStyleName;
+			}
 			var inactiveHeaderRenderers:Vector.<IDataGridHeaderRenderer> = this._headerStorage.inactiveHeaderRenderers;
 			var activeHeaderRenderers:Vector.<IDataGridHeaderRenderer> = this._headerStorage.activeHeaderRenderers;
-			var headerRenderer:IDataGridHeaderRenderer;
+			var headerRenderer:IDataGridHeaderRenderer = null;
 			do
 			{
 				if(inactiveHeaderRenderers.length === 0)
@@ -1626,24 +2403,16 @@ package feathers.controls
 					headerRenderer = inactiveHeaderRenderers.shift();
 				}
 			}
-			while(!headerRenderer)
+			while(headerRenderer === null)
 			headerRenderer.data = column;
 			headerRenderer.columnIndex = columnIndex;
 			headerRenderer.owner = this;
-			if(column.width === column.width) //!isNaN
-			{
-				headerRenderer.width = column.width;
-				headerRenderer.layoutData = null;
-			}
-			else if(headerRenderer.layoutData === null)
-			{
-				headerRenderer.layoutData = new HorizontalLayoutData(100, 100);
-			}
-			headerRenderer.minWidth = column.minWidth;
 
 			this._headerRendererMap[column] = headerRenderer;
 			activeHeaderRenderers[activeHeaderRenderers.length] = headerRenderer;
 			this.dispatchEventWith(FeathersEventType.RENDERER_ADD, false, headerRenderer);
+
+			column.addEventListener(Event.CHANGE, column_changeHandler);
 
 			return headerRenderer;
 		}
@@ -1653,6 +2422,10 @@ package feathers.controls
 		 */
 		protected function destroyHeaderRenderer(headerRenderer:IDataGridHeaderRenderer):void
 		{
+			if(headerRenderer.data !== null)
+			{
+				headerRenderer.data.removeEventListener(Event.CHANGE, column_changeHandler);
+			}
 			headerRenderer.removeEventListener(Event.TRIGGERED, headerRenderer_triggeredHandler);
 			headerRenderer.removeEventListener(TouchEvent.TOUCH, headerRenderer_touchHandler);
 			headerRenderer.owner = null;
@@ -1673,6 +2446,7 @@ package feathers.controls
 			this.dataViewPort.columns = this._columns;
 			this.dataViewPort.typicalItem = this._typicalItem;
 			this.dataViewPort.layout = this._layout;
+			this.dataViewPort.customColumnSizes = this._customColumnSizes;
 		}
 
 		/**
@@ -1716,6 +2490,14 @@ package feathers.controls
 				}
 			}
 			super.handlePendingScroll();
+		}
+
+		/**
+		 * @private
+		 */
+		protected function column_changeHandler(event:Event):void
+		{
+			this.invalidate(INVALIDATION_FLAG_DATA);
 		}
 
 		/**
@@ -2046,7 +2828,7 @@ package feathers.controls
 		{
 			var headerRenderer:IDataGridHeaderRenderer = IDataGridHeaderRenderer(event.currentTarget);
 			var column:DataGridColumn = headerRenderer.data;
-			if(column.sortOrder === SortOrder.NONE)
+			if(!this._sortableColumns || column.sortOrder === SortOrder.NONE)
 			{
 				return;
 			}
@@ -2108,6 +2890,40 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		protected function dataGrid_touchHandler(event:TouchEvent):void
+		{
+			if(this._headerTouchID !== -1)
+			{
+				//a touch has begun, so we'll ignore all other touches.
+				var touch:Touch = event.getTouch(this, null, this._headerTouchID);
+				if(touch === null)
+				{
+					//this should not happen.
+					return;
+				}
+
+				if(touch.phase === TouchPhase.ENDED)
+				{
+					this.removeEventListener(TouchEvent.TOUCH, dataGrid_touchHandler);
+					//these might be null if there was no TouchPhase.MOVED
+					if(this._currentColumnDropIndicatorSkin !== null)
+					{
+						this._currentColumnDropIndicatorSkin.removeFromParent(this._currentColumnDropIndicatorSkin !== this._columnDropIndicatorSkin);
+						this._currentColumnDropIndicatorSkin = null;
+					}
+					if(this._currentColumnDragOverlaySkin !== null)
+					{
+						this._currentColumnDragOverlaySkin.removeFromParent(this._currentColumnDragOverlaySkin !== this._columnDragOverlaySkin);
+						this._currentColumnDragOverlaySkin = null;
+					}
+					this._headerTouchID = -1;
+				}
+			}
+		}
+
+		/**
+		 * @private
+		 */
 		protected function headerRenderer_touchHandler(event:TouchEvent):void
 		{
 			var headerRenderer:IDataGridHeaderRenderer = IDataGridHeaderRenderer(event.currentTarget);
@@ -2126,21 +2942,7 @@ package feathers.controls
 					return;
 				}
 
-				if(touch.phase === TouchPhase.ENDED)
-				{
-					if(this._headerDragIndicatorSkin !== null &&
-						this._headerDragIndicatorSkin.parent !== null)
-					{
-						this._headerDragIndicatorSkin.removeFromParent(false);
-					}
-					if(this._headerDragColumnOverlaySkin !== null &&
-						this._headerDragColumnOverlaySkin.parent !== null)
-					{
-						this._headerDragColumnOverlaySkin.removeFromParent(false);
-					}
-					this._headerTouchID = -1;
-				}
-				else if(touch.phase === TouchPhase.MOVED)
+				if(touch.phase === TouchPhase.MOVED)
 				{
 					if(!DragDropManager.isDragging && this._reorderColumns)
 					{
@@ -2149,17 +2951,34 @@ package feathers.controls
 						dragData.setDataForFormat(DATA_GRID_HEADER_DRAG_FORMAT, column);
 						var self:DataGrid = this;
 						var avatar:RenderDelegate = new RenderDelegate(DisplayObject(headerRenderer));
-						avatar.alpha = this._headerDragAvatarAlpha;
+						avatar.alpha = this._columnDragAvatarAlpha;
 						DragDropManager.startDrag(this, touch, dragData, avatar);
-
-						if(this._headerDragColumnOverlaySkin !== null)
+						if(this._columnDropIndicatorSkin === null)
 						{
-							this._headerDragColumnOverlaySkin.x = this._headerGroup.x + headerRenderer.x;
-							this._headerDragColumnOverlaySkin.y = this._headerGroup.y + headerRenderer.y;
-							this._headerDragColumnOverlaySkin.width = headerRenderer.width;
-							this._headerDragColumnOverlaySkin.height = this._viewPort.y + this._viewPort.visibleHeight - this._headerGroup.y;
-							this.addChild(this._headerDragColumnOverlaySkin);
+							this._currentColumnDropIndicatorSkin = new Quad(1, 1, 0x000000);
 						}
+						if(this._columnDropIndicatorSkin !== null)
+						{
+							this._currentColumnDropIndicatorSkin = this._columnDropIndicatorSkin;
+						}
+						//start out invisible and TouchPhase.MOVED will reveal it, if necessary
+						this._currentColumnDropIndicatorSkin.visible = false;
+						this.addChild(this._currentColumnDropIndicatorSkin);
+
+						if(this._columnDragOverlaySkin === null)
+						{
+							this._currentColumnDragOverlaySkin = new Quad(1, 1, 0xff00ff);
+							this._currentColumnDragOverlaySkin.alpha = 0;
+						}
+						else
+						{
+							this._currentColumnDragOverlaySkin = this._columnDragOverlaySkin;
+						}
+						this._currentColumnDragOverlaySkin.x = this._headerGroup.x + headerRenderer.x;
+						this._currentColumnDragOverlaySkin.y = this._headerGroup.y + headerRenderer.y;
+						this._currentColumnDragOverlaySkin.width = headerRenderer.width;
+						this._currentColumnDragOverlaySkin.height = this._viewPort.y + this._viewPort.visibleHeight - this._headerGroup.y;
+						this.addChild(this._currentColumnDragOverlaySkin);
 					}
 				}
 			}
@@ -2177,6 +2996,9 @@ package feathers.controls
 				this._headerTouchX = touch.globalX;
 				this._headerTouchY = touch.globalX;
 				this._draggedHeaderIndex = headerRenderer.columnIndex;
+				//we want to check for TouchPhase.ENDED after it's bubbled
+				//beyond the header renderer
+				this.addEventListener(TouchEvent.TOUCH, dataGrid_touchHandler);
 			}
 		}
 
@@ -2227,44 +3049,38 @@ package feathers.controls
 			var globalDropX:Number = point.x;
 			Pool.putPoint(point);
 			var dropIndex:int = this.getHeaderDropIndex(globalDropX);
-			var showDragIndicator:Boolean = dropIndex !== this._draggedHeaderIndex &&
+			var showDropIndicator:Boolean = dropIndex !== this._draggedHeaderIndex &&
 				dropIndex !== (this._draggedHeaderIndex + 1);
-			if(this._headerDragIndicatorSkin !== null)
+			this._currentColumnDropIndicatorSkin.visible = showDropIndicator;
+			if(!showDropIndicator)
 			{
-				this._headerDragIndicatorSkin.visible = showDragIndicator;
-				if(showDragIndicator)
-				{
-					if(this._headerDragIndicatorSkin.parent === null)
-					{
-						this.addChild(this._headerDragIndicatorSkin);
-					}
-					if(this._extendedHeaderDragIndicator)
-					{
-						this._headerDragIndicatorSkin.height = this._headerGroup.height + this._viewPort.visibleHeight;
-					}
-					else
-					{
-						this._headerDragIndicatorSkin.height = this._headerGroup.height;
-					}
-					if(this._headerDragIndicatorSkin is IValidating)
-					{
-						IValidating(this._headerDragIndicatorSkin).validate();
-					}
-					var dragIndicatorX:Number = 0;
-					if(dropIndex === this._columns.length)
-					{
-						var header:DisplayObject = this._headerGroup.getChildAt(dropIndex - 1);
-						dragIndicatorX = header.x + header.width;
-					}
-					else
-					{
-						header = this._headerGroup.getChildAt(dropIndex);
-						dragIndicatorX = header.x;
-					}
-					this._headerDragIndicatorSkin.x = this._headerGroup.x + dragIndicatorX - (this._headerDragIndicatorSkin.width / 2);
-					this._headerDragIndicatorSkin.y = this._headerGroup.y;
-				}
+				return;
 			}
+			if(this._extendedColumnDropIndicator)
+			{
+				this._currentColumnDropIndicatorSkin.height = this._headerGroup.height + this._viewPort.visibleHeight;
+			}
+			else
+			{
+				this._currentColumnDropIndicatorSkin.height = this._headerGroup.height;
+			}
+			if(this._currentColumnDropIndicatorSkin is IValidating)
+			{
+				IValidating(this._currentColumnDropIndicatorSkin).validate();
+			}
+			var dropIndicatorX:Number = 0;
+			if(dropIndex === this._columns.length)
+			{
+				var header:DisplayObject = this._headerGroup.getChildAt(dropIndex - 1);
+				dropIndicatorX = header.x + header.width;
+			}
+			else
+			{
+				header = this._headerGroup.getChildAt(dropIndex);
+				dropIndicatorX = header.x;
+			}
+			this._currentColumnDropIndicatorSkin.x = this._headerGroup.x + dropIndicatorX - (this._currentColumnDropIndicatorSkin.width / 2);
+			this._currentColumnDropIndicatorSkin.y = this._headerGroup.y;
 		}
 
 		/**
@@ -2294,20 +3110,213 @@ package feathers.controls
 			var column:DataGridColumn = DataGridColumn(this._columns.removeItemAt(this._draggedHeaderIndex));
 			this._columns.addItemAt(column, dropIndex);
 		}
+
+		/**
+		 * @private
+		 */
+		protected function headerDivider_touchHandler(event:TouchEvent):void
+		{
+			var divider:DisplayObject = DisplayObject(event.currentTarget);
+			if(!this._isEnabled)
+			{
+				this._headerDividerTouchID = -1;
+				return;
+			}
+			var dividerIndex:int = this._headerDividerStorage.activeDividers.indexOf(divider);
+			if(dividerIndex === (this._headerDividerStorage.activeDividers.length - 1) &&
+				this._scrollBarDisplayMode === ScrollBarDisplayMode.FIXED &&
+					this._minVerticalScrollPosition !== this._maxVerticalScrollPosition)
+			{
+				//no resizing!
+				return;
+			}
+			if(this._headerDividerTouchID !== -1)
+			{
+				//a touch has begun, so we'll ignore all other touches.
+				var touch:Touch = event.getTouch(divider, null, this._headerDividerTouchID);
+				if(touch === null)
+				{
+					//this should not happen.
+					return;
+				}
+
+				if(touch.phase === TouchPhase.ENDED)
+				{
+					this.calculateResizedColumnWidth();
+					this._resizingColumnIndex = -1;
+
+					this._currentColumnResizeSkin.removeFromParent(this._currentColumnResizeSkin !== this._columnResizeSkin);
+					this._currentColumnResizeSkin = null;
+					this._headerDividerTouchID = -1;
+				}
+				else if(touch.phase === TouchPhase.MOVED)
+				{
+					var column:DataGridColumn = DataGridColumn(this._columns.getItemAt(this._resizingColumnIndex));
+					var headerRenderer:IDataGridHeaderRenderer = IDataGridHeaderRenderer(this._headerGroup.getChildAt(this._resizingColumnIndex));
+					var minX:Number = headerRenderer.x + column.minWidth;
+					var maxX:Number = this.actualWidth - this._currentColumnResizeSkin.width - this._rightViewPortOffset;
+					var difference:Number = touch.globalX - this._headerDividerTouchX;
+					var newX:Number = divider.x + (divider.width / 2) - (this._currentColumnResizeSkin.width / 2) + difference;
+					if(newX < minX)
+					{
+						newX = minX;
+					}
+					else if(newX > maxX)
+					{
+						newX = maxX;
+					}
+					this._currentColumnResizeSkin.x = newX;
+					this._currentColumnResizeSkin.y = this._headerGroup.y;
+					this._currentColumnResizeSkin.height = this.actualHeight - this._bottomViewPortOffset - this._currentColumnResizeSkin.y;
+				}
+			}
+			else if(this._resizableColumns)
+			{
+				//we aren't tracking another touch, so let's look for a new one.
+				touch = event.getTouch(divider, TouchPhase.BEGAN);
+				if(touch === null)
+				{
+					return;
+				}
+				column = DataGridColumn(this._columns.getItemAt(dividerIndex));
+				if(!column.resizable)
+				{
+					return;
+				}
+				this._resizingColumnIndex = dividerIndex;
+				this._headerDividerTouchID = touch.id;
+				this._headerDividerTouchX = touch.globalX;
+				headerRenderer = IDataGridHeaderRenderer(this._headerGroup.getChildAt(dividerIndex));
+				if(this._columnResizeSkin === null)
+				{
+					this._currentColumnResizeSkin = new Quad(1, 1, 0x000000);
+				}
+				else
+				{
+					this._currentColumnResizeSkin = this._columnResizeSkin;
+				}
+				this._currentColumnResizeSkin.height = this.actualHeight;
+				this.addChild(this._currentColumnResizeSkin);
+				if(this._currentColumnResizeSkin is IValidating)
+				{
+					IValidating(this._currentColumnResizeSkin).validate();
+				}
+				this._currentColumnResizeSkin.x = divider.x + (divider.width / 2) - (this._currentColumnResizeSkin.width / 2);
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function calculateResizedColumnWidth():void
+		{
+			var columnCount:int = this._columns.length;
+			if(this._customColumnSizes === null)
+			{
+				this._customColumnSizes = new Vector.<Number>(columnCount);
+			}
+			else
+			{
+				//make a copy so that it will be detected as a change
+				this._customColumnSizes = this._customColumnSizes.slice();
+				//try to keep any column widths we already saved
+				this._customColumnSizes.length = columnCount;
+			}
+			var column:DataGridColumn = DataGridColumn(this._columns.getItemAt(this._resizingColumnIndex));
+			//clear the explicit width because the user resized it
+			column.width = NaN;
+			var headerRenderer:IDataGridHeaderRenderer = IDataGridHeaderRenderer(this._headerGroup.getChildAt(this._resizingColumnIndex));
+			var preferredWidth:Number = this._currentColumnResizeSkin.x + (this._currentColumnResizeSkin.width / 2) - headerRenderer.x;
+			var totalMinWidth:Number = 0;
+			var originalWidth:Number = headerRenderer.width;
+			var totalWidthAfter:Number = 0;
+			var indicesAfter:Vector.<int> = new <int>[];
+			for(var i:int = 0; i < columnCount; i++)
+			{
+				var currentColumn:DataGridColumn = DataGridColumn(this._columns.getItemAt(i));
+				if(i === this._resizingColumnIndex)
+				{
+					continue;
+				}
+				else if(i < this._resizingColumnIndex)
+				{
+					//we want these columns to maintain their width so that the
+					//resized one will start at the same x position
+					//however, we're not setting the width property on the
+					//DataGridColumn because we want them to be able to resize
+					//later if the whole DataGrid resizes.
+					headerRenderer = IDataGridHeaderRenderer(this._headerGroup.getChildAt(i));
+					this._customColumnSizes[i] = headerRenderer.width;
+					totalMinWidth += headerRenderer.width;
+				}
+				else
+				{
+					if(currentColumn.width === currentColumn.width) //!isNaN
+					{
+						totalMinWidth += currentColumn.width;
+						continue;
+					}
+					else
+					{
+						totalMinWidth += currentColumn.minWidth;
+					}
+					headerRenderer = IDataGridHeaderRenderer(this._headerGroup.getChildAt(i));
+					var columnWidth:Number = headerRenderer.width;
+					totalWidthAfter += columnWidth;
+					this._customColumnSizes[i] = columnWidth;
+					indicesAfter[indicesAfter.length] = i;
+				}
+			}
+			if(indicesAfter.length === 0)
+			{
+				//if all of the columns after the resizing one have explicit
+				//widths, we need to force one to be resized
+				var index:int = this._resizingColumnIndex + 1;
+				indicesAfter[0] = index;
+				column = DataGridColumn(this._columns.getItemAt(index));
+				totalWidthAfter = column.width;
+				totalMinWidth -= totalWidthAfter;
+				totalMinWidth += column.minWidth;
+				this._customColumnSizes[index] = totalWidthAfter;
+				column.width = NaN;
+			}
+			var newWidth:Number = preferredWidth;
+			var maxWidth:Number = this._headerGroup.width - totalMinWidth - this._leftViewPortOffset - this._rightViewPortOffset;
+			if(newWidth > maxWidth)
+			{
+				newWidth = maxWidth;
+			}
+			if(newWidth < column.minWidth)
+			{
+				newWidth = column.minWidth;
+			}
+			this._customColumnSizes[this._resizingColumnIndex] = newWidth;
+
+			//the width to distribute may be positive or negative, depending on
+			//whether the resized column was made smaller or larger
+			var widthToDistribute:Number = originalWidth - newWidth;
+			this.distributeWidthToIndices(widthToDistribute, indicesAfter, totalWidthAfter);
+			this.invalidate(INVALIDATION_FLAG_LAYOUT);
+		}
 	}
 }
 
 import feathers.controls.renderers.IDataGridHeaderRenderer;
 
+import starling.display.DisplayObject;
+
 class HeaderRendererFactoryStorage
 {
-	public function HeaderRendererFactoryStorage()
-	{
-	}
-	
 	public var activeHeaderRenderers:Vector.<IDataGridHeaderRenderer> = new <IDataGridHeaderRenderer>[];
 	public var inactiveHeaderRenderers:Vector.<IDataGridHeaderRenderer> = new <IDataGridHeaderRenderer>[];
 	public var factory:Function = null;
 	public var customHeaderRendererStyleName:String = null;
 	public var columnIndex:int = -1;
+}
+
+class DividerFactoryStorage
+{
+	public var activeDividers:Vector.<DisplayObject> = new <DisplayObject>[];
+	public var inactiveDividers:Vector.<DisplayObject> = new <DisplayObject>[];
+	public var factory:Function = null;
 }
