@@ -40,7 +40,7 @@ package feathers.motion
 		 */
 		public static function createCoverLeftTransition(duration:Number = 0.5, ease:Object = Transitions.EASE_OUT, tweenProperties:Object = null):Function
 		{
-			return function(oldScreen:DisplayObject, newScreen:DisplayObject, onComplete:Function):void
+			return function(oldScreen:DisplayObject, newScreen:DisplayObject, onComplete:Function, managed:Boolean = false):IEffectContext
 			{
 				if(!oldScreen && !newScreen)
 				{
@@ -55,12 +55,16 @@ package feathers.motion
 				{
 					oldScreen.x = 0;
 					oldScreen.y = 0;
-					new CoverTween(newScreen, oldScreen, -oldScreen.width, 0, duration, ease, onComplete, tweenProperties);
+					var tween:CoverTween = new CoverTween(newScreen, oldScreen, -oldScreen.width, 0, duration, ease, managed ? null : onComplete, tweenProperties);
+					if(managed)
+					{
+						return new TweenEffectContext(tween);
+					}
+					Starling.juggler.add(tween);
+					return null;
 				}
-				else //we only have the new screen
-				{
-					slideInNewScreen(newScreen, duration, ease, tweenProperties, onComplete);
-				}
+				//we only have the new screen
+				return slideInNewScreen(newScreen, duration, ease, tweenProperties, onComplete, managed);
 			}
 		}
 
@@ -76,7 +80,7 @@ package feathers.motion
 		 */
 		public static function createCoverRightTransition(duration:Number = 0.5, ease:Object = Transitions.EASE_OUT, tweenProperties:Object = null):Function
 		{
-			return function(oldScreen:DisplayObject, newScreen:DisplayObject, onComplete:Function):void
+			return function(oldScreen:DisplayObject, newScreen:DisplayObject, onComplete:Function, managed:Boolean = false):IEffectContext
 			{
 				if(!oldScreen && !newScreen)
 				{
@@ -91,12 +95,16 @@ package feathers.motion
 				{
 					oldScreen.x = 0;
 					oldScreen.y = 0;
-					new CoverTween(newScreen, oldScreen, oldScreen.width, 0, duration, ease, onComplete, tweenProperties);
+					var tween:CoverTween = new CoverTween(newScreen, oldScreen, oldScreen.width, 0, duration, ease, managed ? null : onComplete, tweenProperties);
+					if(managed)
+					{
+						return new TweenEffectContext(tween);
+					}
+					Starling.juggler.add(tween);
+					return null;
 				}
-				else //we only have the new screen
-				{
-					slideInNewScreen(newScreen, duration, ease, tweenProperties, onComplete);
-				}
+				//we only have the new screen
+				return slideInNewScreen(newScreen, duration, ease, tweenProperties, onComplete, managed);
 			}
 		}
 
@@ -112,7 +120,7 @@ package feathers.motion
 		 */
 		public static function createCoverUpTransition(duration:Number = 0.5, ease:Object = Transitions.EASE_OUT, tweenProperties:Object = null):Function
 		{
-			return function(oldScreen:DisplayObject, newScreen:DisplayObject, onComplete:Function):void
+			return function(oldScreen:DisplayObject, newScreen:DisplayObject, onComplete:Function, managed:Boolean = false):IEffectContext
 			{
 				if(!oldScreen && !newScreen)
 				{
@@ -127,12 +135,16 @@ package feathers.motion
 				{
 					oldScreen.x = 0;
 					oldScreen.y = 0;
-					new CoverTween(newScreen, oldScreen, 0, -oldScreen.height, duration, ease, onComplete, tweenProperties);
+					var tween:CoverTween = new CoverTween(newScreen, oldScreen, 0, -oldScreen.height, duration, ease, managed ? null : onComplete, tweenProperties);
+					if(managed)
+					{
+						return new TweenEffectContext(tween);
+					}
+					Starling.juggler.add(tween);
+					return null;
 				}
-				else //we only have the new screen
-				{
-					slideInNewScreen(newScreen, duration, ease, tweenProperties, onComplete);
-				}
+				//we only have the new screen
+				return slideInNewScreen(newScreen, duration, ease, tweenProperties, onComplete, managed);
 			}
 		}
 
@@ -148,7 +160,7 @@ package feathers.motion
 		 */
 		public static function createCoverDownTransition(duration:Number = 0.5, ease:Object = Transitions.EASE_OUT, tweenProperties:Object = null):Function
 		{
-			return function(oldScreen:DisplayObject, newScreen:DisplayObject, onComplete:Function):void
+			return function(oldScreen:DisplayObject, newScreen:DisplayObject, onComplete:Function, managed:Boolean = false):IEffectContext
 			{
 				if(!oldScreen && !newScreen)
 				{
@@ -163,12 +175,16 @@ package feathers.motion
 				{
 					oldScreen.x = 0;
 					oldScreen.y = 0;
-					new CoverTween(newScreen, oldScreen, 0, oldScreen.height, duration, ease, onComplete, tweenProperties);
+					var tween:CoverTween = new CoverTween(newScreen, oldScreen, 0, oldScreen.height, duration, ease, managed ? null : onComplete, tweenProperties);
+					if(managed)
+					{
+						return new TweenEffectContext(tween);
+					}
+					Starling.juggler.add(tween);
+					return null;
 				}
-				else //we only have the new screen
-				{
-					slideInNewScreen(newScreen, duration, ease, tweenProperties, onComplete);
-				}
+				//we only have the new screen
+				return slideInNewScreen(newScreen, duration, ease, tweenProperties, onComplete, managed);
 			}
 		}
 
@@ -176,7 +192,7 @@ package feathers.motion
 		 * @private
 		 */
 		private static function slideInNewScreen(newScreen:DisplayObject,
-			duration:Number, ease:Object, tweenProperties:Object, onComplete:Function):void
+			duration:Number, ease:Object, tweenProperties:Object, onComplete:Function, managed:Boolean):IEffectContext
 		{
 			var tween:Tween = new Tween(newScreen, duration, ease);
 			if(newScreen.x != 0)
@@ -195,7 +211,12 @@ package feathers.motion
 				}
 			}
 			tween.onComplete = onComplete;
+			if(managed)
+			{
+				return new TweenEffectContext(tween);
+			}
 			Starling.juggler.add(tween);
+			return null;
 		}
 	}
 }
@@ -207,6 +228,7 @@ import starling.core.Starling;
 import starling.display.DisplayObject;
 import starling.display.Quad;
 import starling.display.Sprite;
+import feathers.motion.BaseEffectContext;
 
 class CoverTween extends Tween
 {
@@ -268,7 +290,6 @@ class CoverTween extends Tween
 			this.onUpdate = this.updateNewScreen;
 		}
 		this.onComplete = this.cleanupTween;
-		Starling.juggler.add(this);
 	}
 
 	private var _savedXOffset:Number;
@@ -313,4 +334,3 @@ class CoverTween extends Tween
 	}
 
 }
-

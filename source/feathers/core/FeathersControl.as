@@ -22,12 +22,13 @@ package feathers.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 
-	import starling.core.Starling;
 	import starling.display.DisplayObject;
 	import starling.display.Sprite;
 	import starling.events.Event;
+	import starling.events.EventDispatcher;
 	import starling.utils.MatrixUtil;
 	import starling.utils.Pool;
+	import feathers.motion.IEffectContext;
 
 	/**
 	 * If this component supports focus, this optional skin will be
@@ -389,13 +390,128 @@ package feathers.core
 			{
 				throw new Error(ABSTRACT_CLASS_ERROR);
 			}
-			this._styleProvider = this.defaultStyleProvider;
+			this.styleProvider = this.defaultStyleProvider;
 			this.addEventListener(Event.ADDED_TO_STAGE, feathersControl_addedToStageHandler);
 			this.addEventListener(Event.REMOVED_FROM_STAGE, feathersControl_removedFromStageHandler);
 			if(this is IFocusDisplayObject)
 			{
 				this.addEventListener(FeathersEventType.FOCUS_IN, focusInHandler);
 				this.addEventListener(FeathersEventType.FOCUS_OUT, focusOutHandler);
+			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _addedEffectContext:IEffectContext = null;
+
+		/**
+		 * @private
+		 */
+		protected var _addedEffect:Function = null;
+
+		/**
+		 * 
+		 */
+		public function get addedEffect():Function
+		{
+			return this._addedEffect;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set addedEffect(value:Function):void
+		{
+			this._addedEffect = value;
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _showEffectContext:IEffectContext = null;
+
+		/**
+		 * @private
+		 */
+		protected var _showEffect:Function = null;
+
+		/**
+		 * 
+		 */
+		public function get showEffect():Function
+		{
+			return this._showEffect;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set showEffect(value:Function):void
+		{
+			this._showEffect = value;
+		}
+
+		/**
+		 * @private
+		 */
+		protected var _hideEffectContext:IEffectContext = null;
+
+		/**
+		 * @private
+		 */
+		protected var _hideEffect:Function = null;
+
+		/**
+		 * 
+		 */
+		public function get hideEffect():Function
+		{
+			return this._hideEffect;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set hideEffect(value:Function):void
+		{
+			this._hideEffect = value;
+		}
+
+		override public function set visible(value:Boolean):void
+		{
+			if(this._hideEffectContext !== null)
+			{
+				this._hideEffectContext.stop();
+				this._hideEffectContext = null;
+			}
+			if(this._showEffectContext !== null)
+			{
+				this._showEffectContext.stop();
+				this._showEffectContext = null;
+			}
+			if(value)
+			{
+				super.visible = value;
+				if(this._showEffect !== null && this.stage !== null)
+				{
+					this._showEffectContext = this._showEffect(this);
+					this._showEffectContext.addEventListener(Event.COMPLETE, showEffectContext_completeHandler);
+					this._showEffectContext.play();
+				}
+			}
+			else
+			{
+				if(this._hideEffect === null || this.stage === null)
+				{
+					super.visible = value;
+				}
+				else
+				{
+					this._hideEffectContext = this._hideEffect(this);
+					this._hideEffectContext.addEventListener(Event.COMPLETE, hideEffectContext_completeHandler);
+					this._hideEffectContext.play();
+				}
 			}
 		}
 
@@ -506,12 +622,20 @@ package feathers.core
 			{
 				throw new IllegalOperationError("Cannot change styleProvider while the current style provider is applying styles.")
 			}
+			if(this._styleProvider !== null && this._styleProvider is EventDispatcher)
+			{
+				EventDispatcher(this._styleProvider).removeEventListener(Event.CHANGE, styleProvider_changeHandler);
+			}
 			this._styleProvider = value;
 			if(this._styleProvider !== null && this.isInitialized)
 			{
 				this._applyingStyles = true;
 				this._styleProvider.applyStyles(this);
 				this._applyingStyles = false;
+			}
+			if(this._styleProvider !== null && this._styleProvider is EventDispatcher)
+			{
+				EventDispatcher(this._styleProvider).addEventListener(Event.CHANGE, styleProvider_changeHandler);
 			}
 		}
 
@@ -2221,6 +2345,13 @@ package feathers.core
 			{
 				this._hasValidated = true;
 				this.dispatchEventWith(FeathersEventType.CREATION_COMPLETE);
+
+				if(this.stage !== null && this._addedEffect !== null)
+				{
+					this._addedEffectContext = this._addedEffect(this);
+					this._addedEffectContext.addEventListener(Event.COMPLETE, addedEffectContext_completeHandler);
+					this._addedEffectContext.play();
+				}
 			}
 		}
 
@@ -2779,6 +2910,13 @@ package feathers.core
 				//add to validation queue, if required
 				this._validationQueue.addControl(this);
 			}
+
+			if(this.isCreated && this._addedEffect !== null)
+			{
+				this._addedEffectContext = this._addedEffect(this);
+				this._addedEffectContext.addEventListener(Event.COMPLETE, addedEffectContext_completeHandler);
+				this._addedEffectContext.play();
+			}
 		}
 
 		/**
@@ -2786,8 +2924,37 @@ package feathers.core
 		 */
 		protected function feathersControl_removedFromStageHandler(event:Event):void
 		{
+			if(this._addedEffectContext !== null)
+			{
+				this._addedEffectContext.toEnd();
+			}
 			this._depth = -1;
 			this._validationQueue = null;
+		}
+
+		/**
+		 * @private
+		 */
+		protected function addedEffectContext_completeHandler(event:Event):void
+		{
+			this._addedEffectContext = null;
+		}
+
+		/**
+		 * @private
+		 */
+		protected function showEffectContext_completeHandler(event:Event):void
+		{
+			this._showEffectContext = null;
+		}
+
+		/**
+		 * @private
+		 */
+		protected function hideEffectContext_completeHandler(event:Event):void
+		{
+			this._hideEffectContext = null;
+			super.visible = false;
 		}
 
 		/**
@@ -2810,6 +2977,25 @@ package feathers.core
 			if(this._applyingStyles)
 			{
 				throw new IllegalOperationError("Cannot change styleNameList while the style provider is applying styles.");
+			}
+			this._applyingStyles = true;
+			this._styleProvider.applyStyles(this);
+			this._applyingStyles = false;
+		}
+
+		/**
+		 * @private
+		 */
+		protected function styleProvider_changeHandler(event:Event):void
+		{
+			if(!this._isInitialized)
+			{
+				//safe to ignore changes until initialization
+				return;
+			}
+			if(this._applyingStyles)
+			{
+				throw new IllegalOperationError("Cannot change style provider while it is applying styles.");
 			}
 			this._applyingStyles = true;
 			this._styleProvider.applyStyles(this);
