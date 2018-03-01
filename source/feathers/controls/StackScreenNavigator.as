@@ -11,7 +11,6 @@ package feathers.controls
 	import feathers.core.IFeathersControl;
 	import feathers.events.ExclusiveTouch;
 	import feathers.events.FeathersEventType;
-	import feathers.motion.IEffectContext;
 	import feathers.skins.IStyleProvider;
 	import feathers.system.DeviceCapabilities;
 
@@ -25,6 +24,7 @@ package feathers.controls
 	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
 	import starling.utils.Pool;
+	import feathers.motion.effectClasses.IEffectContext;
 
 	/**
 	 * Typically used to provide some kind of animation or visual effect,
@@ -1384,6 +1384,16 @@ package feathers.controls
 		 */
 		protected function handleDragEnd():void
 		{
+			if(this._dragEffectContext === null)
+			{
+				//if we're waiting to start the transition for performance
+				//reasons, force it to start immediately
+				if(this._waitingTransition !== null)
+				{
+					this.startWaitingTransition();
+				}
+			}
+
 			this._dragCancelled = false;
 			var starling:Starling = this.stage !== null ? this.stage.starling : Starling.current;
 			

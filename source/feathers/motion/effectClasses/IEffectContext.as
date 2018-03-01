@@ -5,7 +5,7 @@ Copyright 2012-2017 Bowler Hat LLC. All Rights Reserved.
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
 */
-package feathers.motion
+package feathers.motion.effectClasses
 {
 	import feathers.core.IFeathersEventDispatcher;
 
@@ -33,11 +33,20 @@ package feathers.motion
 
 	/**
 	 * Gives a component the ability to control an effect.
+	 * 
+	 * @productversion Feathers 3.5.0
 	 */
 	public interface IEffectContext extends IFeathersEventDispatcher
 	{
 		/**
+		 * The duration of the effect, in seconds.
+		 */
+		function get duration():Number;
+
+		/**
 		 * The position of the effect, from <code>0</code> to <code>1</code>.
+		 * 
+		 * @see #duration
 		 */
 		function get position():Number;
 
@@ -48,6 +57,8 @@ package feathers.motion
 
 		/**
 		 * Starts playing the effect from its current position to the end.
+		 * 
+		 * @see #pause()
 		 */
 		function play():void;
 
@@ -63,13 +74,18 @@ package feathers.motion
 		function pause():void;
 
 		/**
-		 * Stops the effect at its current position and orces Event.COMPLETE to
-		 * dispatch.
+		 * Stops the effect at its current position and forces
+		 * <code>Event.COMPLETE</code> to dispatch.
+		 * 
+		 * @see #event:complete starling.events.Event.COMPLETE
 		 */
 		function stop():void;
 
 		/**
-		 * Advances the effect to the end and forces Event.COMPLETE to dispatch.
+		 * Advances the effect to the end and forces
+		 * <code>Event.COMPLETE</code> to dispatch.
+		 * 
+		 * @see #event:complete starling.events.Event.COMPLETE
 		 */
 		function toEnd():void;
 	}	

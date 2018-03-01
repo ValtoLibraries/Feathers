@@ -835,6 +835,10 @@ package feathers.layout
 
 			//this is the total height of all items
 			var totalHeight:Number = positionY - gap - boundsY;
+			if(this._useVirtualLayout && this._beforeVirtualizedItemCount < 0)
+			{
+				totalHeight -= (this._beforeVirtualizedItemCount * (calculatedTypicalItemHeight + gap));
+			}
 			//the available height is the height of the viewport. if the explicit
 			//height is NaN, we need to calculate the viewport height ourselves
 			//based on the total height of all items.
@@ -912,7 +916,12 @@ package feathers.layout
 					var adjustedScrollY:Number = scrollY - verticalAlignOffsetY;
 					if(adjustedScrollY > 0)
 					{
-						item.y += totalHeight * int((adjustedScrollY + availableHeight) / totalHeight);
+						var multiplier:int = int((adjustedScrollY + availableHeight) / totalHeight);
+						if(useVirtualLayout && this._beforeVirtualizedItemCount < 0)
+						{
+							multiplier++;
+						}
+						item.y += totalHeight * multiplier;
 						if(item.y >= (scrollY + availableHeight))
 						{
 							item.y -= totalHeight;

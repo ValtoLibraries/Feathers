@@ -5,7 +5,7 @@ Copyright 2012-2017 Bowler Hat LLC. All Rights Reserved.
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
 */
-package feathers.motion
+package feathers.motion.effectClasses
 {
 	import starling.events.EventDispatcher;
 	import starling.animation.Juggler;
@@ -13,6 +13,7 @@ package feathers.motion
 	import starling.animation.Tween;
 	import starling.events.Event;
 	import starling.errors.AbstractClassError;
+	import starling.animation.Transitions;
 
 	/**
 	 * Dispatched when the effect is complete.
@@ -59,6 +60,10 @@ package feathers.motion
 				throw new AbstractClassError();
 			}
 			this._duration = duration;
+			if(transition === null)
+			{
+				transition = Transitions.LINEAR;
+			}
 			this._transition = transition;
 			this.prepareEffect();
 		}
@@ -74,7 +79,7 @@ package feathers.motion
 		protected var _duration:Number;
 
 		/**
-		 * The duration of the effect.
+		 * The duration of the effect, in seconds.
 		 */
 		public function get duration():Number
 		{
@@ -117,7 +122,8 @@ package feathers.motion
 		protected var _juggler:Juggler = null;
 
 		/**
-		 * The effect's <code>Juggler.</code>
+		 * The <code>Juggler</code> used to update the effect when it is
+		 * playing.
 		 * 
 		 * @see http://doc.starling-framework.org/core/starling/animation/Juggler.html starling.animation.Juggler
 		 */
@@ -156,7 +162,10 @@ package feathers.motion
 		}
 
 		/**
-		 * Sets the position of the tween using a value between <code>0</code> and <code>1</code>.
+		 * Sets the position of the tween using a value between <code>0</code>
+		 * and <code>1</code>.
+		 * 
+		 * @see #duration
 		 */
 		public function get position():Number
 		{

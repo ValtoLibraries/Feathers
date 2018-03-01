@@ -583,7 +583,7 @@ package feathers.controls
 		/**
 		 * The value added to the <code>styleNameList</code> of the error
 		 * callout. This variable is <code>protected</code> so that sub-classes
-		 * can customize the prompt text renderer style name in their
+		 * can customize the error callout text renderer style name in their
 		 * constructors instead of using the default style name defined by
 		 * <code>DEFAULT_CHILD_STYLE_NAME_ERROR_CALLOUT</code>.
 		 *
@@ -1004,7 +1004,20 @@ package feathers.controls
 			{
 				return;
 			}
+			var savedCallee:Function = arguments.callee;
+			function changeHandler(event:Event):void
+			{
+				processStyleRestriction(savedCallee);
+			}
+			if(value !== null)
+			{
+				value.removeEventListener(Event.CHANGE, changeHandler);
+			}
 			this._fontStylesSet.format = value;
+			if(value !== null)
+			{
+				value.addEventListener(Event.CHANGE, changeHandler);
+			}
 		}
 
 		/**
@@ -1024,7 +1037,20 @@ package feathers.controls
 			{
 				return;
 			}
+			var savedCallee:Function = arguments.callee;
+			function changeHandler(event:Event):void
+			{
+				processStyleRestriction(savedCallee);
+			}
+			if(value !== null)
+			{
+				value.removeEventListener(Event.CHANGE, changeHandler);
+			}
 			this._fontStylesSet.disabledFormat = value;
+			if(value !== null)
+			{
+				value.addEventListener(Event.CHANGE, changeHandler);
+			}
 		}
 
 		/**
@@ -1385,7 +1411,19 @@ package feathers.controls
 			{
 				return;
 			}
+			function changeHandler(event:Event):void
+			{
+				processStyleRestriction(key);
+			}
+			if(format !== null)
+			{
+				format.removeEventListener(Event.CHANGE, changeHandler);
+			}
 			this._fontStylesSet.setFormatForState(state, format);
+			if(format !== null)
+			{
+				format.addEventListener(Event.CHANGE, changeHandler);
+			}
 		}
 
 		/**
