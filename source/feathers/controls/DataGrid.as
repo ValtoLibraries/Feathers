@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2017 Bowler Hat LLC. All Rights Reserved.
+Copyright 2012-2018 Bowler Hat LLC. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -2720,15 +2720,7 @@ package feathers.controls
 		/**
 		 * @private
 		 */
-		protected function dataProvider_sortChangeHandler(event:Event):void
-		{
-			this.invalidate(INVALIDATION_FLAG_DATA);
-		}
-
-		/**
-		 * @private
-		 */
-		protected function dataProvider_filterChangeHandler(event:Event):void
+		protected function refreshSelectedIndicesAfterFilterOrSort():void
 		{
 			if(this._selectedIndex === -1)
 			{
@@ -2763,6 +2755,22 @@ package feathers.controls
 			{
 				this._selectedIndices.data = newIndices;
 			}
+		}
+
+		/**
+		 * @private
+		 */
+		protected function dataProvider_sortChangeHandler(event:Event):void
+		{
+			this.refreshSelectedIndicesAfterFilterOrSort();
+		}
+
+		/**
+		 * @private
+		 */
+		protected function dataProvider_filterChangeHandler(event:Event):void
+		{
+			this.refreshSelectedIndicesAfterFilterOrSort();
 		}
 
 		/**

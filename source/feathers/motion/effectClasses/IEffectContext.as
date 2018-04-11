@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2017 Bowler Hat LLC. All Rights Reserved.
+Copyright 2012-2018 Bowler Hat LLC. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -9,8 +9,12 @@ package feathers.motion.effectClasses
 {
 	import feathers.core.IFeathersEventDispatcher;
 
+	import starling.display.DisplayObject;
+
 	/**
-	 * Dispatched when the effect is complete.
+	 * Dispatched when the effect completes or is interrupted. If the effect was
+	 * stopped instead of advancing to the end, the value of the event's
+	 * <code>data</code> property will be <code>true</code>.
 	 *
 	 * <p>The properties of the event object have the following values:</p>
 	 * <table class="innertable">
@@ -20,7 +24,9 @@ package feathers.motion.effectClasses
 	 *   event listener that handles the event. For example, if you use
 	 *   <code>myButton.addEventListener()</code> to register an event listener,
 	 *   myButton is the value of the <code>currentTarget</code>.</td></tr>
-	 * <tr><td><code>data</code></td><td>null</td></tr>
+	 * <tr><td><code>data</code></td><td>If the effect was stopped without
+	 *   reaching the end, this value will be <code>true</code>. Otherwise,
+	 *   <code>false</code>.</td></tr>
 	 * <tr><td><code>target</code></td><td>The Object that dispatched the event;
 	 *   it is not always the Object listening for the event. Use the
 	 *   <code>currentTarget</code> property to always access the Object
@@ -38,6 +44,11 @@ package feathers.motion.effectClasses
 	 */
 	public interface IEffectContext extends IFeathersEventDispatcher
 	{
+		/**
+		 * The target of the effect.
+		 */
+		function get target():DisplayObject;
+
 		/**
 		 * The duration of the effect, in seconds.
 		 */
@@ -75,18 +86,32 @@ package feathers.motion.effectClasses
 
 		/**
 		 * Stops the effect at its current position and forces
-		 * <code>Event.COMPLETE</code> to dispatch.
+		 * <code>Event.COMPLETE</code> to dispatch. The <code>data</code>
+		 * property of the event will be <code>true</code>.
 		 * 
+		 * @see #toEnd()
 		 * @see #event:complete starling.events.Event.COMPLETE
 		 */
 		function stop():void;
 
 		/**
 		 * Advances the effect to the end and forces
-		 * <code>Event.COMPLETE</code> to dispatch.
+		 * <code>Event.COMPLETE</code> to dispatch. The <code>data</code>
+		 * property of the event will be <code>false</code>.
 		 * 
+		 * @see #stop()
 		 * @see #event:complete starling.events.Event.COMPLETE
 		 */
 		function toEnd():void;
+
+		/**
+		 * Interrupts the playing effect, but the effect context will be allowed
+		 * to determine on its own if it should call <code>stop()</code> or
+		 * <code>toEnd()</code>.
+		 * 
+		 * @see #toEnd()
+		 * @see #stop()
+		 */
+		function interrupt():void;
 	}	
 }

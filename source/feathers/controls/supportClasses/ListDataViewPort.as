@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2017 Bowler Hat LLC. All Rights Reserved.
+Copyright 2012-2018 Bowler Hat LLC. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -33,6 +33,7 @@ package feathers.controls.supportClasses
 	import starling.display.DisplayObject;
 	import starling.events.Event;
 	import starling.utils.Pool;
+	import feathers.motion.effectClasses.IEffectContext;
 
 	/**
 	 * @private
@@ -649,6 +650,40 @@ package feathers.controls.supportClasses
 			this.invalidate(INVALIDATION_FLAG_SELECTED);
 		}
 
+		protected var _addedItems:Dictionary = null;
+
+		public function get addedItems():Dictionary
+		{
+			return this._addedItems;
+		}
+
+		public function set addedItems(value:Dictionary):void
+		{
+			if(this._addedItems === value)
+			{
+				return;
+			}
+			this._addedItems = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
+		protected var _removedItems:Dictionary = null;
+
+		public function get removedItems():Dictionary
+		{
+			return this._removedItems;
+		}
+
+		public function set removedItems(value:Dictionary):void
+		{
+			if(this._removedItems === value)
+			{
+				return;
+			}
+			this._removedItems = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+
 		public function get requiresMeasurementOnScroll():Boolean
 		{
 			return this._layout.requiresLayoutOnScroll &&
@@ -789,6 +824,41 @@ package feathers.controls.supportClasses
 
 			//final validation to avoid juggler next frame issues
 			this.validateItemRenderers();
+
+			this.handlePendingItemRendererEffects();
+		}
+
+		private function handlePendingItemRendererEffects():void
+		{
+			if(this._addedItems !== null)
+			{
+				for(var item:Object in this._addedItems)
+				{
+					var itemRenderer:IListItemRenderer = this._rendererMap[item] as IListItemRenderer;
+					if(itemRenderer !== null)
+					{
+						var effect:Function = this._addedItems[item] as Function;
+						var context:IEffectContext = IEffectContext(effect(itemRenderer));
+						context.play();
+					}
+				}
+				this._addedItems = null;
+			}
+			if(this._removedItems !== null)
+			{
+				for(item in this._removedItems)
+				{
+					itemRenderer = this._rendererMap[item] as IListItemRenderer;
+					if(itemRenderer !== null)
+					{
+						effect = this._removedItems[item] as Function;
+						context = IEffectContext(effect(itemRenderer));
+						context.addEventListener(Event.COMPLETE, removedItemEffectContext_completeHandler);
+						context.play();
+					}
+				}
+				this._removedItems = null;
+			}
 		}
 
 		private function invalidateParent(flag:String = INVALIDATION_FLAG_ALL):void
@@ -1399,10 +1469,24 @@ package feathers.controls.supportClasses
 					if(itemRendererFactory !== null)
 					{
 						itemRenderer = IListItemRenderer(itemRendererFactory());
+						//effects and other things might cause these values to
+						//change after creation, and we should restore them if
+						//this item renderer is reused later.
+						storage.explicitWidth = itemRenderer.explicitWidth;
+						storage.explicitHeight = itemRenderer.explicitHeight;
+						storage.explicitMinWidth = itemRenderer.explicitMinWidth;
+						storage.explicitMinHeight = itemRenderer.explicitMinHeight;
 					}
 					else
 					{
 						itemRenderer = IListItemRenderer(new this._itemRendererType());
+						//if effects or anything else changed these values after
+						//creation, then we need to reset them for proper
+						//measurement.
+						itemRenderer.width = storage.explicitWidth;
+						itemRenderer.height = storage.explicitHeight;
+						itemRenderer.minWidth = storage.explicitMinWidth;
+						itemRenderer.minHeight = storage.explicitMinHeight;
 					}
 					if(this._customItemRendererStyleName && this._customItemRendererStyleName.length > 0)
 					{
@@ -1672,6 +1756,32 @@ package feathers.controls.supportClasses
 		{
 			this.invalidate(INVALIDATION_FLAG_SELECTED);
 		}
+
+		private function removedItemEffectContext_completeHandler(event:Event):void
+		{
+			var context:IEffectContext = IEffectContext(event.currentTarget);
+			var itemRenderer:IListItemRenderer = IListItemRenderer(context.target);
+			//don't remove it from the data provider until the effect is done
+			//because we don't want to remove it from the layout yet
+			this._dataProvider.removeItem(itemRenderer.data);
+
+			//we're going to completely destroy this item renderer because the
+			//effect may have left it in a state where it won't be valid for
+			//use by a new item. for instance, if the item faded out, it would
+			//start out invisible (unless an item added effect faded it back in,
+			//but we can't assume that).
+
+			//recover
+			this._owner.dispatchEventWith(FeathersEventType.RENDERER_REMOVE, false, itemRenderer);
+			delete this._rendererMap[itemRenderer.data];
+			
+			//free
+			var storage:ItemRendererFactoryStorage = this.factoryIDToStorage(itemRenderer.factoryID);
+			var activeItemRenderers:Vector.<IListItemRenderer> = storage.activeItemRenderers;
+			var index:int = activeItemRenderers.indexOf(itemRenderer);
+			activeItemRenderers.removeAt(index);
+			this.destroyRenderer(itemRenderer);
+		}
 	}
 }
 
@@ -1686,4 +1796,8 @@ class ItemRendererFactoryStorage
 	
 	public var activeItemRenderers:Vector.<IListItemRenderer> = new <IListItemRenderer>[];
 	public var inactiveItemRenderers:Vector.<IListItemRenderer> = new <IListItemRenderer>[];
+	public var explicitWidth:Number;
+	public var explicitHeight:Number;
+	public var explicitMinWidth:Number;
+	public var explicitMinHeight:Number;
 }

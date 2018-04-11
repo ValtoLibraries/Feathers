@@ -1,6 +1,6 @@
 /*
 Feathers
-Copyright 2012-2017 Bowler Hat LLC. All Rights Reserved.
+Copyright 2012-2018 Bowler Hat LLC. All Rights Reserved.
 
 This program is free software. You can redistribute and/or modify it in
 accordance with the terms of the accompanying license agreement.
@@ -1401,6 +1401,11 @@ package feathers.controls.text
 		 */
 		protected function stage_touchHandler(event:TouchEvent):void
 		{
+			if(FocusManager.isEnabledForStage(this.stage))
+			{
+				//let the focus manager handle clearing focus
+				return;
+			}
 			var touch:Touch = event.getTouch(this.stage, TouchPhase.BEGAN);
 			if(!touch) //we only care about began touches
 			{
