@@ -46,6 +46,7 @@ package feathers.controls
 	import starling.events.TouchPhase;
 	import starling.utils.MathUtil;
 	import starling.utils.Pool;
+	import starling.display.DisplayObjectContainer;
 
 	/**
 	 * If <code>true</code>, the background's <code>visible</code> property
@@ -1303,11 +1304,6 @@ package feathers.controls
 		 * @private
 		 */
 		protected var ignoreViewPortResizing:Boolean = false;
-
-		/**
-		 * @private
-		 */
-		protected var _touchBlocker:Quad;
 
 		/**
 		 * @private
@@ -4328,7 +4324,13 @@ package feathers.controls
 			var localY:Number = localPoint.y;
 			//first check the children for touches
 			var result:DisplayObject = super.hitTest(localPoint);
-			if(!result)
+			if((this._isDraggingHorizontally || this._isDraggingVertically) &&
+				this.viewPort is DisplayObjectContainer &&
+				DisplayObjectContainer(this.viewPort).contains(result))
+			{
+				result = DisplayObject(this.viewPort);
+			}
+			if(result === null)
 			{
 				//we want to register touches in our hitArea as a last resort
 				if(!this.visible || !this.touchable)
@@ -5386,11 +5388,6 @@ package feathers.controls
 		protected function showOrHideChildren():void
 		{
 			var childCount:int = this.numRawChildrenInternal;
-			if(this._touchBlocker !== null && this._touchBlocker.parent !== null)
-			{
-				//keep scroll bars below the touch blocker, if it exists
-				childCount--;
-			}
 			if(this.verticalScrollBar)
 			{
 				this.verticalScrollBar.visible = this._hasVerticalScrollBar;
@@ -5549,20 +5546,10 @@ package feathers.controls
 			if(this._interactionMode == ScrollInteractionMode.TOUCH || this._interactionMode == ScrollInteractionMode.TOUCH_AND_SCROLL_BARS)
 			{
 				this.addEventListener(TouchEvent.TOUCH, scroller_touchHandler);
-				if(!this._touchBlocker)
-				{
-					this._touchBlocker = new Quad(100, 100, 0xff00ff);
-					this._touchBlocker.alpha = 0;
-				}
 			}
 			else
 			{
 				this.removeEventListener(TouchEvent.TOUCH, scroller_touchHandler);
-				if(this._touchBlocker)
-				{
-					this.removeRawChildInternal(this._touchBlocker, true);
-					this._touchBlocker = null;
-				}
 			}
 
 			if((this._interactionMode == ScrollInteractionMode.MOUSE || this._interactionMode == ScrollInteractionMode.TOUCH_AND_SCROLL_BARS) &&
@@ -5603,14 +5590,6 @@ package feathers.controls
 			{
 				this.currentBackgroundSkin.width = this.actualWidth;
 				this.currentBackgroundSkin.height = this.actualHeight;
-			}
-
-			if(this._touchBlocker !== null)
-			{
-				this._touchBlocker.x = this._leftViewPortOffset;
-				this._touchBlocker.y = this._topViewPortOffset;
-				this._touchBlocker.width = visibleWidth;
-				this._touchBlocker.height = visibleHeight;
 			}
 
 			if(this._snapScrollPositionsToPixels)
@@ -7235,10 +7214,6 @@ package feathers.controls
 				return;
 			}
 			this._isScrolling = true;
-			if(this._touchBlocker)
-			{
-				this.addRawChildInternal(this._touchBlocker);
-			}
 			this.dispatchEventWith(FeathersEventType.SCROLL_START);
 		}
 
@@ -7255,10 +7230,6 @@ package feathers.controls
 				return;
 			}
 			this._isScrolling = false;
-			if(this._touchBlocker)
-			{
-				this.removeRawChildInternal(this._touchBlocker, false);
-			}
 			this.hideHorizontalScrollBar();
 			this.hideVerticalScrollBar();
 			//we validate to ensure that the final Event.SCROLL
@@ -7908,14 +7879,14 @@ package feathers.controls
 				this._touchPointID = -1;
 				return;
 			}
-			if(this._touchPointID >= 0)
+			if(this._touchPointID !== -1)
 			{
 				return;
 			}
 
 			//any began touch is okay here. we don't need to check all touches.
 			var touch:Touch = event.getTouch(this, TouchPhase.BEGAN);
-			if(!touch)
+			if(touch === null)
 			{
 				return;
 			}
@@ -7931,8 +7902,8 @@ package feathers.controls
 			var touchY:Number = touchPosition.y;
 			Pool.putPoint(touchPosition);
 			if(touchX < this._leftViewPortOffset || touchY < this._topViewPortOffset ||
-				touchX >= this.actualWidth - this._rightViewPortOffset ||
-				touchY >= this.actualHeight - this._bottomViewPortOffset)
+				touchX >= (this.actualWidth - this._rightViewPortOffset) ||
+				touchY >= (this.actualHeight - this._bottomViewPortOffset))
 			{
 				return;
 			}
@@ -7945,25 +7916,15 @@ package feathers.controls
 			}
 
 			//if the scroll policy is off, we shouldn't stop this animation
-			if(this._horizontalAutoScrollTween && this._horizontalScrollPolicy != ScrollPolicy.OFF)
+			if(this._horizontalAutoScrollTween !== null && this._horizontalScrollPolicy !== ScrollPolicy.OFF)
 			{
 				Starling.juggler.remove(this._horizontalAutoScrollTween);
 				this._horizontalAutoScrollTween = null;
-				if(this._isScrolling)
-				{
-					//immediately start dragging, since it was scrolling already
-					this._isDraggingHorizontally = true;
-				}
 			}
-			if(this._verticalAutoScrollTween && this._verticalScrollPolicy != ScrollPolicy.OFF)
+			if(this._verticalAutoScrollTween !== null && this._verticalScrollPolicy !== ScrollPolicy.OFF)
 			{
 				Starling.juggler.remove(this._verticalAutoScrollTween);
 				this._verticalAutoScrollTween = null;
-				if(this._isScrolling)
-				{
-					//immediately start dragging, since it was scrolling already
-					this._isDraggingVertically = true;
-				}
 			}
 
 			this._touchPointID = touch.id;
@@ -7977,6 +7938,13 @@ package feathers.controls
 			this._startHorizontalScrollPosition = this._horizontalScrollPosition;
 			this._startVerticalScrollPosition = this._verticalScrollPosition;
 			this._isScrollingStopped = false;
+			this._isDraggingVertically = false;
+			this._isDraggingHorizontally = false;
+			if(this._isScrolling)
+			{
+				//if it was scrolling, stop it immediately
+				this.completeScroll();
+			}
 
 			this.addEventListener(Event.ENTER_FRAME, scroller_enterFrameHandler);
 
@@ -7985,14 +7953,7 @@ package feathers.controls
 			//receiving touch events for "this".
 			this.stage.addEventListener(TouchEvent.TOUCH, stage_touchHandler);
 
-			if(this._isScrolling && (this._isDraggingHorizontally || this._isDraggingVertically))
-			{
-				exclusiveTouch.claimTouch(this._touchPointID, this);
-			}
-			else
-			{
-				exclusiveTouch.addEventListener(Event.CHANGE, exclusiveTouch_changeHandler);
-			}
+			exclusiveTouch.addEventListener(Event.CHANGE, exclusiveTouch_changeHandler);
 		}
 
 		/**

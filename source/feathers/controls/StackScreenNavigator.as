@@ -8,9 +8,9 @@ accordance with the terms of the accompanying license agreement.
 package feathers.controls
 {
 	import feathers.controls.supportClasses.BaseScreenNavigator;
-	import feathers.core.IFeathersControl;
 	import feathers.events.ExclusiveTouch;
 	import feathers.events.FeathersEventType;
+	import feathers.motion.effectClasses.IEffectContext;
 	import feathers.skins.IStyleProvider;
 	import feathers.system.DeviceCapabilities;
 
@@ -24,7 +24,6 @@ package feathers.controls
 	import starling.events.TouchEvent;
 	import starling.events.TouchPhase;
 	import starling.utils.Pool;
-	import feathers.motion.effectClasses.IEffectContext;
 
 	/**
 	 * Typically used to provide some kind of animation or visual effect,
@@ -894,6 +893,20 @@ package feathers.controls
 		/**
 		 * @private
 		 */
+		override public function hitTest(local:Point):DisplayObject
+		{
+			var result:DisplayObject = super.hitTest(local);
+			if(this._isDragging && result !== null)
+			{
+				//don't allow touches to reach children while dragging
+				return this;
+			}
+			return result;
+		}
+
+		/**
+		 * @private
+		 */
 		override protected function prepareActiveScreen():void
 		{
 			var item:StackScreenNavigatorItem = StackScreenNavigatorItem(this._screens[this._activeScreenID]);
@@ -1366,7 +1379,7 @@ package feathers.controls
 		/**
 		 * @private
 		 */
-		protected function dragTransition(oldScreen:IFeathersControl, newScreen:IFeathersControl, onComplete:Function):void
+		protected function dragTransition(oldScreen:DisplayObject, newScreen:DisplayObject, onComplete:Function):void
 		{
 			this._savedTransitionOnComplete = onComplete;
 			this._dragEffectContext = this._dragEffectTransition(this._previousScreenInTransition, this._activeScreen, null, true);
@@ -1470,6 +1483,12 @@ package feathers.controls
 			else
 			{
 				this._dragEffectTransition = this.popTransition;
+			}
+			
+			//if no transition has been specified, use the default
+			if(this._dragEffectTransition === null)
+			{
+				this._dragEffectTransition = defaultTransition;
 			}
 
 			//if this is an old transition that doesn't support being managed,

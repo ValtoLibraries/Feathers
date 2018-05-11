@@ -12,6 +12,9 @@ package feathers.core
 	import feathers.events.FeathersEventType;
 	import feathers.layout.ILayoutData;
 	import feathers.layout.ILayoutDisplayObject;
+	import feathers.motion.effectClasses.IEffectContext;
+	import feathers.motion.effectClasses.IMoveEffectContext;
+	import feathers.motion.effectClasses.IResizeEffectContext;
 	import feathers.skins.IStyleProvider;
 	import feathers.utils.display.getDisplayObjectDepthFromStage;
 
@@ -28,9 +31,6 @@ package feathers.core
 	import starling.events.EventDispatcher;
 	import starling.utils.MatrixUtil;
 	import starling.utils.Pool;
-	import feathers.motion.effectClasses.IEffectContext;
-	import feathers.motion.effectClasses.IMoveEffectContext;
-	import feathers.motion.effectClasses.IResizeEffectContext;
 
 	/**
 	 * If this component supports focus, this optional skin will be
@@ -415,10 +415,48 @@ package feathers.core
 		/**
 		 * An optional effect that is activated when the component is shown.
 		 * More specifically, this effect plays when the <code>visible</code>
-		 * property is set to <code>true.</code>
+		 * property is set to <code>true</code>.
+		 *
+		 * <p>In the following example, a show effect fades the component's
+		 * <code>alpha</code> property from <code>0</code> to <code>1</code>:</p>
+		 *
+		 * <listing version="3.0">
+		 * control.showEffect = Fade.createFadeBetweenEffect(0, 1);</listing>
+		 *
+		 * <p>A number of animated effects may be found in the
+		 * <a href="../motion/package-detail.html">feathers.motion</a> package.
+		 * However, you are not limited to only these effects. It's possible
+		 * to create custom effects too.</p>
+		 *
+		 * <p>A custom effect function should have the following signature:</p>
+		 * <pre>function(target:DisplayObject):IEffectContext</pre>
+		 *
+		 * <p>The <code>IEffectContext</code> is used by the component to
+		 * control the effect, performing actions like playing the effect,
+		 * pausing it, or cancelling it.</p>
 		 * 
+		 * <p>Custom animated effects that use
+		 * <code>starling.display.Tween</code> typically return a
+		 * <code>TweenEffectContext</code>. In the following example, we
+		 * recreate the <code>Fade.createFadeBetweenEffect()</code> used in the
+		 * previous example.</p>
+		 * 
+		 * <listing version="3.0">
+		 * control.showEffect = function(target:DisplayObject):IEffectContext
+		 * {
+		 *     target.alpha = 0;
+		 *     var tween:Tween = new Tween(target, 0.5, Transitions.EASE_OUT);
+		 *     tween.fadeTo(1);
+		 *     return new TweenEffectContext(tween);
+		 * };</listing>
+		 *
+		 * @default null
+		 *
 		 * @see #visible
 		 * @see #hideEffect
+		 * @see ../../../help/effects.html Effects and animation for Feathers components
+		 * @see feathers.motion.effectClasses.IEffectContext
+		 * @see feathers.motion.effectClasses.TweenEffectContext
 		 */
 		public function get showEffect():Function
 		{
@@ -447,9 +485,46 @@ package feathers.core
 		 * An optional effect that is activated when the component is hidden.
 		 * More specifically, this effect plays when the <code>visible</code>
 		 * property is set to <code>false</code>.
+		 *
+		 * <p>In the following example, a hide effect fades the component's
+		 * <code>alpha</code> property to <code>0</code>:</p>
+		 *
+		 * <listing version="3.0">
+		 * control.hideEffect = Fade.createFadeOutEffect();</listing>
+		 *
+		 * <p>A number of animated effects may be found in the
+		 * <a href="../motion/package-detail.html">feathers.motion</a> package.
+		 * However, you are not limited to only these effects. It's possible
+		 * to create custom effects too.</p>
+		 *
+		 * <p>A custom effect function should have the following signature:</p>
+		 * <pre>function(target:DisplayObject):IEffectContext</pre>
+		 *
+		 * <p>The <code>IEffectContext</code> is used by the component to
+		 * control the effect, performing actions like playing the effect,
+		 * pausing it, or cancelling it.</p>
 		 * 
+		 * <p>Custom animated effects that use
+		 * <code>starling.display.Tween</code> typically return a
+		 * <code>TweenEffectContext</code>. In the following example, we
+		 * recreate the <code>Fade.createFadeOutEffect()</code> used in the
+		 * previous example.</p>
+		 * 
+		 * <listing version="3.0">
+		 * control.hideEffect = function(target:DisplayObject):IEffectContext
+		 * {
+		 *     var tween:Tween = new Tween(target, 0.5, Transitions.EASE_OUT);
+		 *     tween.fadeTo(0);
+		 *     return new TweenEffectContext(tween);
+		 * };</listing>
+		 *
+		 * @default null
+		 *
 		 * @see #visible
 		 * @see #showEffect
+		 * @see ../../../help/effects.html Effects and animation for Feathers components
+		 * @see feathers.motion.effectClasses.IEffectContext
+		 * @see feathers.motion.effectClasses.TweenEffectContext
 		 */
 		public function get hideEffect():Function
 		{
@@ -521,8 +596,29 @@ package feathers.core
 		 * <p>The implementation of this property is provided for convenience,
 		 * but it cannot be used unless a subclass implements the
 		 * <code>IFocusDisplayObject</code> interface.</p>
+		 *
+		 * <p>A number of animated effects may be found in the
+		 * <a href="../motion/package-detail.html">feathers.motion</a> package.
+		 * However, you are not limited to only these effects. It's possible
+		 * to create custom effects too.</p>
+		 *
+		 * <p>A custom effect function should have the following signature:</p>
+		 * <pre>function(target:DisplayObject):IEffectContext</pre>
+		 *
+		 * <p>The <code>IEffectContext</code> is used by the component to
+		 * control the effect, performing actions like playing the effect,
+		 * pausing it, or cancelling it.</p>
 		 * 
+		 * <p>Custom animated effects that use
+		 * <code>starling.display.Tween</code> typically return a
+		 * <code>TweenEffectContext</code>.</p>
+		 *
+		 * @default null
+		 *
 		 * @see #focusOutEffect
+		 * @see ../../../help/effects.html Effects and animation for Feathers components
+		 * @see feathers.motion.effectClasses.IEffectContext
+		 * @see feathers.motion.effectClasses.TweenEffectContext
 		 */
 		public function get focusInEffect():Function
 		{
@@ -554,7 +650,32 @@ package feathers.core
 		 * but it cannot be used unless a subclass implements the
 		 * <code>IFocusDisplayObject</code> interface.</p>
 		 * 
+		 * <p>The implementation of this property is provided for convenience,
+		 * but it cannot be used unless a subclass implements the
+		 * <code>IFocusDisplayObject</code> interface.</p>
+		 *
+		 * <p>A number of animated effects may be found in the
+		 * <a href="../motion/package-detail.html">feathers.motion</a> package.
+		 * However, you are not limited to only these effects. It's possible
+		 * to create custom effects too.</p>
+		 *
+		 * <p>A custom effect function should have the following signature:</p>
+		 * <pre>function(target:DisplayObject):IEffectContext</pre>
+		 *
+		 * <p>The <code>IEffectContext</code> is used by the component to
+		 * control the effect, performing actions like playing the effect,
+		 * pausing it, or cancelling it.</p>
+		 * 
+		 * <p>Custom animated effects that use
+		 * <code>starling.display.Tween</code> typically return a
+		 * <code>TweenEffectContext</code>.</p>
+		 *
+		 * @default null
+		 *
 		 * @see #focusInEffect
+		 * @see ../../../help/effects.html Effects and animation for Feathers components
+		 * @see feathers.motion.effectClasses.IEffectContext
+		 * @see feathers.motion.effectClasses.TweenEffectContext
 		 */
 		public function get focusOutEffect():Function
 		{
@@ -581,9 +702,48 @@ package feathers.core
 
 		/**
 		 * An optional effect that is activated when the component is added to
-		 * the stage.
+		 * the stage. Typically used to animate the component's appearance when
+		 * it is first displayed.
+		 *
+		 * <p>In the following example, an added effect fades the component's
+		 * <code>alpha</code> property from <code>0</code> to <code>1</code>:</p>
+		 *
+		 * <listing version="3.0">
+		 * control.addedEffect = Fade.createFadeBetweenEffect(0, 1);</listing>
+		 *
+		 * <p>A number of animated effects may be found in the
+		 * <a href="../motion/package-detail.html">feathers.motion</a> package.
+		 * However, you are not limited to only these effects. It's possible
+		 * to create custom effects too.</p>
+		 *
+		 * <p>A custom effect function should have the following signature:</p>
+		 * <pre>function(target:DisplayObject):IEffectContext</pre>
+		 *
+		 * <p>The <code>IEffectContext</code> is used by the component to
+		 * control the effect, performing actions like playing the effect,
+		 * pausing it, or cancelling it.</p>
 		 * 
+		 * <p>Custom animated effects that use
+		 * <code>starling.display.Tween</code> typically return a
+		 * <code>TweenEffectContext</code>. In the following example, we
+		 * recreate the <code>Fade.createFadeBetweenEffect()</code> used in the
+		 * previous example.</p>
+		 * 
+		 * <listing version="3.0">
+		 * control.addedEffect = function(target:DisplayObject):IEffectContext
+		 * {
+		 *     target.alpha = 0;
+		 *     var tween:Tween = new Tween(target, 0.5, Transitions.EASE_OUT);
+		 *     tween.fadeTo(1);
+		 *     return new TweenEffectContext(tween);
+		 * };</listing>
+		 *
+		 * @default null
+		 *
 		 * @see #removeFromParentWithEffect()
+		 * @see ../../../help/effects.html Effects and animation for Feathers components
+		 * @see feathers.motion.effectClasses.IEffectContext
+		 * @see feathers.motion.effectClasses.TweenEffectContext
 		 */
 		public function get addedEffect():Function
 		{
@@ -911,7 +1071,23 @@ package feathers.core
 		 * An optional effect that is activated when the component is resized
 		 * with new dimensions. More specifically, this effect plays when the
 		 * <code>width</code> or <code>height</code> property changes.
+		 *
+		 * <p>In the following example, a resize effect will animate the new
+		 * dimensions of the component when it resizes:</p>
+		 *
+		 * <listing version="3.0">
+		 * control.resizeEffect = Resize.createResizeEffect();</listing>
+		 *
+		 * <p>A custom effect function should have the following signature:</p>
+		 * <pre>function(target:DisplayObject):IResizeEffectContext</pre>
+		 *
+		 * <p>The <code>IResizeEffectContext</code> is used by the component to
+		 * control the effect, performing actions like playing the effect,
+		 * pausing it, or cancelling it. Custom animated resize effects that use
+		 * <code>starling.display.Tween</code> typically return a
+		 * <code>TweenResizeEffectContext</code>.</p>
 		 * 
+		 * @see feathers.motion.Resize
 		 * @see #width
 		 * @see #height
 		 * @see #setSize()
@@ -943,7 +1119,25 @@ package feathers.core
 		 * An optional effect that is activated when the component is moved to
 		 * a new position. More specifically, this effect plays when the
 		 * <code>x</code> or <code>y</code> property changes.
-		 * 
+		 *
+		 * <p>In the following example, a move effect will animate the new
+		 * position of the component when it moves:</p>
+		 *
+		 * <listing version="3.0">
+		 * control.moveEffect = Move.createMoveEffect();</listing>
+		 *
+		 * <p>A custom effect function should have the following signature:</p>
+		 * <pre>function(target:DisplayObject):IMoveEffectContext</pre>
+		 *
+		 * <p>The <code>IMoveEffectContext</code> is used by the component to
+		 * control the effect, performing actions like playing the effect,
+		 * pausing it, or cancelling it. Custom animated move effects that use
+		 * <code>starling.display.Tween</code> typically return a
+		 * <code>TweenMoveEffectContext</code>.</p>
+		 *
+		 * @default null
+		 *
+		 * @see feathers.motion.Move
 		 * @see #x
 		 * @see #y
 		 * @see #move()
@@ -966,8 +1160,14 @@ package feathers.core
 		 */
 		override public function set x(value:Number):void
 		{
+			var newY:Number = this.y;
 			if(this._suspendEffectsCount === 0 && this._moveEffectContext !== null)
 			{
+				if(this._moveEffectContext is IMoveEffectContext)
+				{
+					var moveEffectContext:IMoveEffectContext = IMoveEffectContext(this._moveEffectContext);
+					newY = moveEffectContext.newY;
+				}
 				this._moveEffectContext.interrupt();
 				this._moveEffectContext = null;
 			}
@@ -977,11 +1177,11 @@ package feathers.core
 				this._moveEffectContext.addEventListener(Event.COMPLETE, moveEffectContext_completeHandler);
 				if(this._moveEffectContext is IMoveEffectContext)
 				{
-					var moveEffectContext:IMoveEffectContext = IMoveEffectContext(this._moveEffectContext);
+					moveEffectContext = IMoveEffectContext(this._moveEffectContext);
 					moveEffectContext.oldX = this.x;
 					moveEffectContext.oldY = this.y;
 					moveEffectContext.newX = value;
-					moveEffectContext.newY = this.y;
+					moveEffectContext.newY = newY;
 				}
 				else
 				{
@@ -1000,8 +1200,14 @@ package feathers.core
 		 */
 		override public function set y(value:Number):void
 		{
+			var newX:Number = this.x;
 			if(this._suspendEffectsCount === 0 && this._moveEffectContext !== null)
 			{
+				if(this._moveEffectContext is IMoveEffectContext)
+				{
+					var moveEffectContext:IMoveEffectContext = IMoveEffectContext(this._moveEffectContext);
+					newX = moveEffectContext.newX;
+				}
 				this._moveEffectContext.interrupt();
 				this._moveEffectContext = null;
 			}
@@ -1011,10 +1217,10 @@ package feathers.core
 				this._moveEffectContext.addEventListener(Event.COMPLETE, moveEffectContext_completeHandler);
 				if(this._moveEffectContext is IMoveEffectContext)
 				{
-					var moveEffectContext:IMoveEffectContext = IMoveEffectContext(this._moveEffectContext);
+					moveEffectContext = IMoveEffectContext(this._moveEffectContext);
 					moveEffectContext.oldX = this.x;
 					moveEffectContext.oldY = this.y;
-					moveEffectContext.newX = this.x;
+					moveEffectContext.newX = newX;
 					moveEffectContext.newY = value;
 				}
 				else
@@ -1101,8 +1307,14 @@ package feathers.core
 				return;
 			}
 			var hasSetExplicitWidth:Boolean = false;
+			var newHeight:Number = this.actualHeight;
 			if(this._suspendEffectsCount === 0 && this._resizeEffectContext !== null)
 			{
+				if(this._resizeEffectContext is IResizeEffectContext)
+				{
+					var resizeEffectContext:IResizeEffectContext = IResizeEffectContext(this._resizeEffectContext);
+					newHeight = resizeEffectContext.newHeight;
+				}
 				this._resizeEffectContext.interrupt();
 				this._resizeEffectContext = null;
 			}
@@ -1112,11 +1324,11 @@ package feathers.core
 				this._resizeEffectContext.addEventListener(Event.COMPLETE, resizeEffectContext_completeHandler);
 				if(this._resizeEffectContext is IResizeEffectContext)
 				{
-					var resizeEffectContext:IResizeEffectContext = IResizeEffectContext(this._resizeEffectContext);
+					resizeEffectContext = IResizeEffectContext(this._resizeEffectContext);
 					resizeEffectContext.oldWidth = this.actualWidth;
 					resizeEffectContext.oldHeight = this.actualHeight;
 					resizeEffectContext.newWidth = value;
-					resizeEffectContext.newHeight = this.actualHeight;
+					resizeEffectContext.newHeight = newHeight;
 				}
 				else
 				{
@@ -1235,8 +1447,14 @@ package feathers.core
 				return;
 			}
 			var hasSetExplicitHeight:Boolean = false;
+			var newWidth:Number = this.actualWidth;
 			if(this._suspendEffectsCount === 0 && this._resizeEffectContext !== null)
 			{
+				if(this._resizeEffectContext is IResizeEffectContext)
+				{
+					var resizeEffectContext:IResizeEffectContext = IResizeEffectContext(this._resizeEffectContext);
+					newWidth = resizeEffectContext.newWidth;
+				}
 				this._resizeEffectContext.interrupt();
 				this._resizeEffectContext = null;
 			}
@@ -1246,10 +1464,10 @@ package feathers.core
 				this._resizeEffectContext.addEventListener(Event.COMPLETE, resizeEffectContext_completeHandler);
 				if(this._resizeEffectContext is IResizeEffectContext)
 				{
-					var resizeEffectContext:IResizeEffectContext = IResizeEffectContext(this._resizeEffectContext);
+					resizeEffectContext = IResizeEffectContext(this._resizeEffectContext);
 					resizeEffectContext.oldWidth = this.actualWidth;
 					resizeEffectContext.oldHeight = this.actualHeight;
-					resizeEffectContext.newWidth = this.actualWidth;
+					resizeEffectContext.newWidth = newWidth;
 					resizeEffectContext.newHeight = value;
 				}
 				else
@@ -2810,8 +3028,45 @@ package feathers.core
 
 		/**
 		 * Plays an effect before removing the component from its parent.
+		 *
+		 * <p>In the following example, an effect fades the component's
+		 * <code>alpha</code> property to <code>0</code> before removing the
+		 * component from its parent:</p>
+		 *
+		 * <listing version="3.0">
+		 * control.removeFromParentWithEffect(Fade.createFadeOutEffect(), true);</listing>
+		 *
+		 * <p>A number of animated effects may be found in the
+		 * <a href="../motion/package-detail.html">feathers.motion</a> package.
+		 * However, you are not limited to only these effects. It's possible
+		 * to create custom effects too.</p>
+		 *
+		 * <p>A custom effect function should have the following signature:</p>
+		 * <pre>function(target:DisplayObject):IEffectContext</pre>
+		 *
+		 * <p>The <code>IEffectContext</code> is used by the component to
+		 * control the effect, performing actions like playing the effect,
+		 * pausing it, or cancelling it.</p>
 		 * 
+		 * <p>Custom animated effects that use
+		 * <code>starling.display.Tween</code> typically return a
+		 * <code>TweenEffectContext</code>. In the following example, we
+		 * recreate the <code>Fade.createFadeOutEffect()</code> used in the
+		 * previous example.</p>
+		 * 
+		 * <listing version="3.0">
+		 * function customEffect(target:DisplayObject):IEffectContext
+		 * {
+		 *     var tween:Tween = new Tween(target, 0.5, Transitions.EASE_OUT);
+		 *     tween.fadeTo(0);
+		 *     return new TweenEffectContext(tween);
+		 * }
+		 * control.removeFromParentWithEffect(customEffect, true);</listing>
+		 *
 		 * @see #addedEffect
+		 * @see ../../../help/effects.html Effects and animation for Feathers components
+		 * @see feathers.motion.effectClasses.IEffectContext
+		 * @see feathers.motion.effectClasses.TweenEffectContext
 		 */
 		public function removeFromParentWithEffect(effect:Function, dispose:Boolean = false):void
 		{
